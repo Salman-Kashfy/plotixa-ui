@@ -1,0 +1,6 @@
+.upload-image-container img, .responsive {
+    max-width: 100%;
+}
+.MuiDateRangeCalendar-root > div[style*="z-index: 100000"] {
+    display: none !important;
+}
