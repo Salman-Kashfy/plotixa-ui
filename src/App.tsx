@@ -33,7 +33,8 @@ function App() {
     const [permissions, setPermissions] = useState(JSON.parse(localStorage.getItem(storagePermission)) || []);
     const [token, setToken] = useState(localStorage.getItem(storageKey) ? localStorage.getItem(storageKey) : false);
     const [projectUuid, setProjectUuid] = useState(localStorage.getItem(storageProjectUuid) ? localStorage.getItem(storageProjectUuid) : '');
-    const userData = {loggedIn, admin, permissions, token, projectUuid, setLoggedIn, setAdmin, setToken, setPermissions, setProjectUuid};
+    const [projects, setProjects] = useState(JSON.parse(localStorage.getItem('USER_PROJECTS')) || []);
+    const userData = {loggedIn, admin, permissions, token, projectUuid, projects, setLoggedIn, setAdmin, setToken, setPermissions, setProjectUuid, setProjects};
 
     const [toast, setToast] = useState(false);
     const [toastSeverity, setToastSeverity] = useState('info');

@@ -45,9 +45,11 @@ function Signin() {
                     setLoading(false)
                     adminContext.setPermissions(permissionsResponse.data)
                     if (projectsResponse?.status && projectsResponse.data?.length) {
-                        const firstProjectUuid = projectsResponse.data[0].uuid
-                        localStorage.setItem(constants.PROJECT_UUID, firstProjectUuid)
-                        adminContext.setProjectUuid(firstProjectUuid)
+                        adminContext.setProjects(projectsResponse.data)
+                        const defaultProjectUuid = data.admin?.defaultProjectUuid
+                        const projectUuid = defaultProjectUuid || projectsResponse.data[0].uuid
+                        localStorage.setItem(constants.PROJECT_UUID, projectUuid)
+                        adminContext.setProjectUuid(projectUuid)
                     }
                     if (permissionsResponse.status) {
                         if(permissionsResponse.data.admin?.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED){

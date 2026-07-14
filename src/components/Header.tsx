@@ -14,6 +14,9 @@ import {
     Tooltip,
     Avatar,
     MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { NavLink } from 'react-router-dom';
@@ -22,7 +25,7 @@ import PowerSettingsNewOutlinedIcon from '@mui/icons-material/PowerSettingsNewOu
 import { styled } from '@mui/material/styles';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import { ROUTES } from '../utils/constants';
+import { ROUTES, constants } from '../utils/constants';
 import { DRAWER_WIDTH } from './Sidebar';
 import crmLogo from '../assets/cloudfitnest.png';
 
@@ -77,6 +80,13 @@ function Header({
     const adminContext = useContext(AdminContext) as any;
     const navigate = useNavigate();
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+    const projects = adminContext.projects || [];
+    const selectedProjectUuid = adminContext.projectUuid || '';
+
+    const handleProjectChange = (uuid: string) => {
+        localStorage.setItem(constants.PROJECT_UUID, uuid);
+        adminContext.setProjectUuid(uuid);
+    };
 
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
@@ -152,6 +162,31 @@ function Header({
                                     </Box>
                                 </Box>
                             </Box>
+                            {projects.length > 0 && (
+                                <>
+                                    <Divider sx={{ mb: 1 }} />
+                                    <Box sx={{ px: 2, pb: 1 }}>
+                                        <Typography variant="subtitle2" gutterBottom>
+                                            Project
+                                        </Typography>
+                                        <FormControl fullWidth size="small">
+                                            <InputLabel id="project-select-label">Select project</InputLabel>
+                                            <Select
+                                                labelId="project-select-label"
+                                                value={selectedProjectUuid}
+                                                label="Select project"
+                                                onChange={(e) => handleProjectChange(e.target.value)}
+                                            >
+                                                {projects.map((project: any) => (
+                                                    <MenuItem key={project.uuid} value={project.uuid}>
+                                                        {project.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
+                                </>
+                            )}
                             <Divider sx={{ mb: 1 }} />
                             <Typography sx={{ px: 2 }} variant="subtitle2" gutterBottom>
                                 Manage account
