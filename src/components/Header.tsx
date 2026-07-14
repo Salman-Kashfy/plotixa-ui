@@ -81,11 +81,13 @@ function Header({
     const navigate = useNavigate();
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const projects = adminContext.projects || [];
-    const selectedProjectUuid = adminContext.projectUuid || '';
+    const [selectedProjectUuid, setSelectedProjectUuid] = useState<string>(adminContext.projectUuid || '');
 
     const handleProjectChange = (uuid: string) => {
+        setSelectedProjectUuid(uuid);
         localStorage.setItem(constants.PROJECT_UUID, uuid);
         adminContext.setProjectUuid(uuid);
+        handleCloseUserMenu();
     };
 
     const handleCloseUserMenu = () => {
