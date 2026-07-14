@@ -14,7 +14,6 @@ import {
     Tooltip,
     Avatar,
     MenuItem,
-    useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { NavLink } from 'react-router-dom';
@@ -75,11 +74,8 @@ function Header({
     handleThemeChange,
     isMobile = false,
 }: HeaderProps) {
-    const adminContext = useContext(AdminContext);
+    const adminContext = useContext(AdminContext) as any;
     const navigate = useNavigate();
-    const theme = useTheme();
-
-
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
     const handleCloseUserMenu = () => {
