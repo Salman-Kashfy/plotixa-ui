@@ -67,15 +67,17 @@ export const UserPermissions = async () => {
 
 export const Logout = async () => {
     const response = await POST(apiUrl.logout);
-    authUser = null
-    userPermissions = null
+    authUser = null;
+    userPermissions = null;
     return response;
 }
 
 export const EmptyLocalStorage = async () => {
     await localStorage.removeItem(storageAdmin);
-    await localStorage.removeItem(storageKey)
-    return await localStorage.removeItem(storagePermissions)
+    await localStorage.removeItem(storageKey);
+    await localStorage.removeItem(storagePermissions);
+    await localStorage.removeItem('USER_PROJECTS');
+    return await localStorage.removeItem(constants.PROJECT_UUID);
 }
 
 export const GetUserRole = () => {

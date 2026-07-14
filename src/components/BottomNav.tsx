@@ -2,13 +2,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
     BottomNavigation,
     BottomNavigationAction,
-    Fab,
     Paper,
     useTheme,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
 import { hasPermission } from '../utils/permissions';
-import { PERMISSIONS, ROUTES } from '../utils/constants';
 import { bottomNavMenuItem, getBottomNavItems } from './navigation/sidebarNavConfig';
 
 type BottomNavProps = {
@@ -20,11 +17,6 @@ function BottomNav({ onMenuOpen }: BottomNavProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const items = getBottomNavItems(hasPermission);
-    const canCreateLead = hasPermission(PERMISSIONS.LEAD.UPSERT);
-
-    const mid = Math.ceil(items.length / 2);
-    const leftItems = canCreateLead ? items.slice(0, mid) : items;
-    const rightItems = canCreateLead ? items.slice(mid) : [];
 
     const activeValue = items.find(
         (item) => location.pathname === item.route || location.pathname.startsWith(`${item.route}/`)
@@ -58,11 +50,10 @@ function BottomNav({ onMenuOpen }: BottomNavProps) {
                 showLabels
                 sx={{
                     height: 64,
-                    position: 'relative',
                     bgcolor: 'background.paper',
                 }}
             >
-                {leftItems.map((item) => (
+                {items.map((item) => (
                     <BottomNavigationAction
                         key={item.key}
                         label={item.label}
@@ -72,57 +63,6 @@ function BottomNav({ onMenuOpen }: BottomNavProps) {
                         sx={navActionSx}
                     />
                 ))}
-
-                {canCreateLead ? (
-                    <BottomNavigationAction
-                        value="create-lead"
-                        disableRipple
-                        showLabel={false}
-                        icon={
-                            <Fab
-                                color="primary"
-                                size="medium"
-                                aria-label="Create lead"
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    navigate(ROUTES.LEAD.CREATE);
-                                }}
-                                sx={{
-                                    position: 'absolute',
-                                    top: -22,
-                                    width: 56,
-                                    height: 56,
-                                    boxShadow: 4,
-                                    bgcolor: 'primary.main',
-                                    color: 'primary.contrastText',
-                                    '&:hover': {
-                                        bgcolor: 'primary.dark',
-                                    },
-                                }}
-                            >
-                                <AddIcon sx={{ fontSize: 28 }} />
-                            </Fab>
-                        }
-                        onClick={() => navigate(ROUTES.LEAD.CREATE)}
-                        sx={{
-                            ...navActionSx,
-                            flex: '0 0 64px',
-                            maxWidth: 64,
-                        }}
-                    />
-                ) : null}
-
-                {rightItems.map((item) => (
-                    <BottomNavigationAction
-                        key={item.key}
-                        label={item.label}
-                        value={item.route}
-                        icon={<item.Icon />}
-                        onClick={() => navigate(item.route)}
-                        sx={navActionSx}
-                    />
-                ))}
-
                 <BottomNavigationAction
                     label={bottomNavMenuItem.label}
                     value="menu"

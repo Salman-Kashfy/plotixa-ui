@@ -14,9 +14,7 @@ import {
     Tooltip,
     Avatar,
     MenuItem,
-    Button,
     useTheme,
-    useMediaQuery,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { NavLink } from 'react-router-dom';
@@ -25,9 +23,7 @@ import PowerSettingsNewOutlinedIcon from '@mui/icons-material/PowerSettingsNewOu
 import { styled } from '@mui/material/styles';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import { PERMISSIONS, ROLE, ROUTES } from '../utils/constants';
-import { hasPermission } from '../utils/permissions';
-import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined';
+import { ROUTES } from '../utils/constants';
 import { DRAWER_WIDTH } from './Sidebar';
 import crmLogo from '../assets/cloudfitnest.png';
 
@@ -82,20 +78,9 @@ function Header({
     const adminContext = useContext(AdminContext);
     const navigate = useNavigate();
     const theme = useTheme();
-    const isTabletUp = useMediaQuery(theme.breakpoints.up('md'));
 
-    const menus = [
-        { name: 'Sales', route: ROUTES.REPORT.SALES, permission: PERMISSIONS.PAYMENT.LIST },
-        { name: 'Expense', route: ROUTES.EXPENSE.LIST, permission: PERMISSIONS.EXPENSE.LIST },
-        { name: 'Memberships', route: ROUTES.MEMBERSHIP.LIST, permission: PERMISSIONS.MEMBERSHIP.LIST },
-        { name: 'Attendance', route: ROUTES.GYM_QR_SESSION.LIST, permission: PERMISSIONS.GYM_QR_SESSION.LIST },
-        { name: 'Calendar', route: ROUTES.CALENDAR.VIEW, permission: PERMISSIONS.CLASS_SCHEDULE.LIST },
-    ];
 
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-    const [toast, setToast] = useState(false);
-    const [toastSeverity, setToastSeverity] = useState('info');
-    const [toastMessage, setToastMessage] = useState('');
 
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
@@ -111,16 +96,10 @@ function Header({
                 if (data.status) {
                     await EmptyLocalStorage();
                     navigate('/');
-                } else {
-                    setToastSeverity('error');
-                    setToastMessage(data.message);
-                    setToast(true);
                 }
             })
             .catch((error) => {
-                setToastSeverity('error');
-                setToastMessage(error.response?.data?.message || 'Logout failed');
-                setToast(true);
+                console.error(error.response?.data?.message || 'Logout failed');
             });
     }
 
@@ -136,32 +115,7 @@ function Header({
                         <MenuIcon />
                     </IconButton>
                 )}
-                <Box sx={{ flexGrow: 1, justifyContent: 'center', display: { xs: 'none', md: 'flex' } }}>
-                    {menus.map((menu) => (
-                        <Button
-                            key={menu.name}
-                            size="small"
-                            sx={{
-                                mx: 0.5,
-                                display: menu.permission
-                                    ? hasPermission(menu.permission)
-                                        ? 'inline-flex'
-                                        : 'none'
-                                    : 'inline-flex',
-                            }}
-                            component={NavLink}
-                            to={menu.route}
-                        >
-                            {menu.name}
-                        </Button>
-                    ))}
-                    {hasPermission(PERMISSIONS.LEAD.UPSERT) ? (
-                        <Button variant="contained" size="small" sx={{ ml: 1 }} component={NavLink} to={ROUTES.LEAD.CREATE}>
-                            Create
-                        </Button>
-                    ) : null}
-                </Box>
-                <Box sx={{ flexGrow: isTabletUp ? 0 : 1 }} />
+                <Box sx={{ flexGrow: 1 }} />
                 <Box sx={{ flexGrow: 0, ml: 'auto', display: 'flex', alignItems: 'center' }}>
                     <Tooltip title="Toggle theme">
                         <IconButton onClick={handleThemeChange} aria-label="change-mode">
@@ -206,15 +160,7 @@ function Header({
                             <Typography sx={{ px: 2 }} variant="subtitle2" gutterBottom>
                                 Manage account
                             </Typography>
-                            {[ROLE.BRAND_ADMIN].includes(adminContext.admin.role.name.toLowerCase()) ? (
-                                <MenuItem key="subscription-view" component={NavLink} to={ROUTES.SUBSCRIPTION.VIEW} onClick={handleCloseUserMenu}>
-                                    <ListItemIcon>
-                                        <PlayCircleOutlinedIcon fontSize="small" />
-                                    </ListItemIcon>
-                                    <Typography sx={{ textAlign: 'center' }}>Subscription</Typography>
-                                </MenuItem>
-                            ) : null}
-                            <MenuItem key="logout" component={NavLink} onClick={handleLogout}>
+                            <MenuItem key="logout" onClick={handleLogout}>
                                 <ListItemIcon>
                                     <PowerSettingsNewOutlinedIcon fontSize="small" />
                                 </ListItemIcon>

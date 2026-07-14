@@ -189,6 +189,7 @@ export const constants = {
     GRAPHQL_SERVER: import.meta.env.VITE_BASE_URL + '/graphql',
     STRIPE_PUBLIC_KEY: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
     FAKE_RESPONSE: import.meta.env.VITE_FAKE_RESPONSE === 'true',
+    PROJECT_UUID: 'PROJECT_UUID',
 };
 
 export const apiUrl = {
@@ -196,6 +197,7 @@ export const apiUrl = {
     refreshToken: '/refresh-token',
     logout: '/logout',
     userPermissions: '/user-permissions',
+    projects: '/projects',
     uploadImage: '/upload-image',
     deleteFile: '/delete-file',
     createOtp: '/create-otp',
@@ -228,48 +230,51 @@ export const ROUTES = {
         CREATE: '/gym/create',
         EDIT: ((id = null) => '/gym/'+(id || ':id')+'/edit'),
         VIEW: ((id = null) => '/gym/'+(id || ':id')),
-        OPTIONS: ((id = null) => '/gym/'+(id || ':id')+'/options'),
     },
     LEAD: {
         LIST: '/leads',
         CREATE: '/lead/create',
         EDIT: ((id = null) => '/lead/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/lead/'+(id || ':id'))
+        VIEW: ((id = null) => '/lead/'+(id || ':id')),
     },
     CUSTOMER: {
         LIST: '/customers',
+        CREATE: '/customer/create',
         EDIT: ((id = null) => '/customer/'+(id || ':id')+'/edit'),
-        TAB: ((id = null, tab = null) => '/customer/'+(id || ':id')+'/'+(tab || ':tab')),
+        VIEW: ((id = null) => '/customer/'+(id || ':id')),
     },
     INSTRUCTOR: {
         LIST: '/instructors',
         CREATE: '/instructor/create',
         EDIT: ((id = null) => '/instructor/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/instructor/'+(id || ':id'))
+        VIEW: ((id = null) => '/instructor/'+(id || ':id')),
     },
     SERVICE: {
         LIST: '/services',
         CREATE: '/service/create',
         EDIT: ((id = null) => '/service/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/service/'+(id || ':id'))
+        VIEW: ((id = null) => '/service/'+(id || ':id')),
+    },
+    CALENDAR: {
+        VIEW: '/calendar',
     },
     MEMBERSHIP_PLAN_GROUP: {
-        LIST: '/plan-groups',
-        CREATE: '/plan-group/create',
-        EDIT: ((id = null) => '/plan-group/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/plan-group/'+(id || ':id'))
+        LIST: '/membership-plan-groups',
+        CREATE: '/membership-plan-group/create',
+        EDIT: ((id = null) => '/membership-plan-group/'+(id || ':id')+'/edit'),
+        VIEW: ((id = null) => '/membership-plan-group/'+(id || ':id')),
     },
     MEMBERSHIP_PLAN: {
         LIST: '/membership-plans',
         CREATE: '/membership-plan/create',
         EDIT: ((id = null) => '/membership-plan/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/membership-plan/'+(id || ':id'))
+        VIEW: ((id = null) => '/membership-plan/'+(id || ':id')),
     },
     PAYMENT_PLAN: {
         LIST: '/payment-plans',
         CREATE: '/payment-plan/create',
         EDIT: ((id = null) => '/payment-plan/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/payment-plan/'+(id || ':id'))
+        VIEW: ((id = null) => '/payment-plan/'+(id || ':id')),
     },
     ADMIN: {
         LIST: '/admins',
@@ -281,60 +286,43 @@ export const ROUTES = {
         LIST: '/classes',
         CREATE: '/class/create',
         EDIT: ((id = null) => '/class/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/class/'+(id || ':id'))
+        VIEW: ((id = null) => '/class/'+(id || ':id')),
     },
     CLASS_SCHEDULE: {
         LIST: '/class-schedules',
         CREATE: '/class-schedule/create',
         EDIT: ((id = null) => '/class-schedule/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/class-schedule/'+(id || ':id'))
-    },
-    DISCOUNT: {
-        LIST: '/discounts',
-        CREATE: '/discount/create',
-        EDIT: ((id = null) => '/discount/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/discount/'+(id || ':id'))
-    },
-    CALENDAR: {
-        VIEW: '/calendar',
+        VIEW: ((id = null) => '/class-schedule/'+(id || ':id')),
     },
     REPORT: {
-        SALES: '/report/sales',
-        PT_COMMISSION: '/report/pt-commission',
-    },
-    GYM_QR_SESSION: {
-        LIST: '/attendance',
+        SALES: '/reports/sales',
+        PT_COMMISSION: '/reports/pt-commission',
     },
     MEMBERSHIP: {
         LIST: '/memberships',
-    },
-    SUBSCRIPTION: {
-        VIEW: '/subscription',
-        BILLING: '/subscription/billing',
-        PAYMENT: '/subscription/payments', // For Super Admin use ONLY
+        CREATE: '/membership/create',
+        EDIT: ((id = null) => '/membership/'+(id || ':id')+'/edit'),
+        VIEW: ((id = null) => '/membership/'+(id || ':id')),
     },
     EXPENSE: {
         LIST: '/expenses',
         CREATE: '/expense/create',
         EDIT: ((id = null) => '/expense/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/expense/'+(id || ':id'))
+        VIEW: ((id = null) => '/expense/'+(id || ':id')),
     },
-    PT_COMMISSION: {
-        VIEW: ((instructorId = null) => '/instructor/pt-commission/'+(instructorId || ':instructorId')),
+    GYM_QR_SESSION: {
+        LIST: '/attendance',
+        VIEW: ((id = null) => '/attendance/'+(id || ':id')),
     },
-    CLASS_COMMISSION: {
-        VIEW: ((instructorId = null) => '/instructor/class-commission/'+(instructorId || ':instructorId')),
+    DISCOUNT: {
+        LIST: '/discounts',
+        CREATE: '/discount/create',
+        EDIT: ((id = null) => '/discount/'+(id || ':id')+'/edit'),
+        VIEW: ((id = null) => '/discount/'+(id || ':id')),
     },
-}
-
-export enum DAY_TO_WEEKDAY {
-    "1" = "Sunday",
-    "2" = "Monday",
-    "3" = "Tuesday",
-    "4" = "Wednesday",
-    "5" = "Thursday",
-    "6" = "Friday",
-    "7" = "Saturday",
+    SUBSCRIPTION: {
+        PAYMENT: '/subscription-payments',
+    },
 }
 
 export const PERMISSIONS = {
@@ -347,34 +335,42 @@ export const PERMISSIONS = {
         LIST: 'gym:view',
         CREATE: 'gym:create',
         UPDATE: 'gym:update',
+        DELETE: 'gym:delete',
     },
     LEAD: {
         LIST: 'lead:view',
-        UPSERT: 'lead:upsert',
+        CREATE: 'lead:create',
+        UPDATE: 'lead:update',
         DELETE: 'lead:delete',
     },
     CUSTOMER: {
         LIST: 'customer:view',
-        UPSERT: 'customer:upsert',
+        CREATE: 'customer:create',
+        UPDATE: 'customer:update',
+        DELETE: 'customer:delete',
     },
     INSTRUCTOR: {
         LIST: 'instructor:view',
-        UPSERT: 'instructor:upsert',
+        CREATE: 'instructor:create',
+        UPDATE: 'instructor:update',
         DELETE: 'instructor:delete',
     },
     SERVICE: {
         LIST: 'service:view',
-        UPSERT: 'service:upsert',
+        CREATE: 'service:create',
+        UPDATE: 'service:update',
         DELETE: 'service:delete',
     },
     MEMBERSHIP_PLAN_GROUP: {
         LIST: 'membership_plan_group:view',
-        UPSERT: 'membership_plan_group:upsert',
+        CREATE: 'membership_plan_group:create',
+        UPDATE: 'membership_plan_group:update',
         DELETE: 'membership_plan_group:delete',
     },
     MEMBERSHIP_PLAN: {
         LIST: 'membership_plan:view',
-        UPSERT: 'membership_plan:upsert',
+        CREATE: 'membership_plan:create',
+        UPDATE: 'membership_plan:update',
         DELETE: 'membership_plan:delete',
     },
     PAYMENT_PLAN: {
@@ -389,64 +385,48 @@ export const PERMISSIONS = {
     },
     CLASS: {
         LIST: 'class:view',
-        UPSERT: 'class:upsert',
+        CREATE: 'class:create',
+        UPDATE: 'class:update',
         DELETE: 'class:delete',
-        PURCHASE: 'class:purchase',
     },
     CLASS_SCHEDULE: {
         LIST: 'class_schedule:view',
-        UPSERT: 'class_schedule:upsert',
+        CREATE: 'class_schedule:create',
+        UPDATE: 'class_schedule:update',
         DELETE: 'class_schedule:delete',
-        ATTEND: 'class_schedule:attend',
-        MODIFY: 'class_schedule:modify',
-        MARK_DONE: 'class_schedule:mark_done',
-    },
-    DISCOUNT: {
-        LIST: 'discount:view',
-        UPSERT: 'discount:upsert',
-        DELETE: 'discount:delete',
-    },
-    SESSION_CONTRACT: {
-        LIST: 'session_contract:view',
-        UPSERT: 'session_contract:upsert',
-        DELETE: 'session_contract:delete',
-        BOOK: 'session_contract:book',
-        PAY: 'session_contract:pay',
-    },
-    PAYMENT: {
-        LIST: 'payments:view',
     },
     MEMBERSHIP: {
-        LIST: 'membership:list',
-        PURCHASE: 'membership:purchase',
-        CANCEL: 'membership:cancel',
+        LIST: 'membership:view',
+        CREATE: 'membership:create',
+        UPDATE: 'membership:update',
+        DELETE: 'membership:delete',
+    },
+    EXPENSE: {
+        LIST: 'expense:view',
+        CREATE: 'expense:create',
+        UPDATE: 'expense:update',
+        DELETE: 'expense:delete',
+    },
+    REPORT: {
+        PT_COMMISSION: 'report:pt_commission',
     },
     GYM_QR_SESSION: {
         LIST: 'gym_qr_session:view',
-        UPSERT: 'gym_qr_session:upsert'
+    },
+    DISCOUNT: {
+        LIST: 'discount:view',
+        CREATE: 'discount:create',
+        UPDATE: 'discount:update',
+        DELETE: 'discount:delete',
+    },
+    PAYMENT: {
+        LIST: 'payments:view',
     },
     SUBSCRIPTION: {
         LIST: 'subscription:view',
         BILLING: 'subscription:purchase',
         PAYMENT: 'subscription:payment', // For Super Admin use ONLY
     },
-    EXPENSE: {
-        LIST: 'expense:view',
-        UPSERT: 'expense:upsert',
-        DELETE: 'expense:delete',
-    },
-    PT_COMMISSION: {
-        VIEW:'pt_commission:view',
-        UPSERT:'pt_commission:upsert',
-    },
-    CLASS_COMMISSION: {
-        VIEW:'class_commission:view',
-        UPSERT:'class_commission:upsert',
-    },
-    REPORT: {
-        PT_COMMISSION: 'pt_commission_report:view',
-        CLASS_COMMISSION: 'class_commission_report:view',
-    }
 }
 
 export enum CUSTOMER_TABS {
@@ -462,41 +442,6 @@ export enum PAYMENT_STATUS {
     FAILURE = "FAILURE",
     REFUNDED = "REFUNDED",
     PENDING_PAYMENT = "PENDING_PAYMENT",
-}
-
-// export enum MEMBERSHIP_STATUS {
-//     PENDING_PAYMENT = 'PENDING_PAYMENT',
-//     ACTIVE = 'ACTIVE',
-//     ENDED = 'ENDED',
-//     CANCELLED = 'CANCELLED',
-//     FROZEN = 'FROZEN',
-//     TERMINATED = 'TERMINATED',
-//     INACTIVE = 'INACTIVE',
-//     UPCOMING = 'UPCOMING',
-//     TRANSFERRED = 'TRANSFERRED',
-//     RELOCATED = 'RELOCATED'
-// }
-
-export enum SERVICE_TYPE {
-    SINGLE_SESSION = 'SINGLE_SESSION',
-    GROUP_SESSION = 'GROUP_SESSION'
-}
-
-export enum TAX_MODE {
-    NO_TAXES = 'NO_TAXES',
-    INCLUSIVE = 'INCLUSIVE',
-    EXCLUSIVE = 'EXCLUSIVE'
-}
-
-export enum SESSION_CONTRACT_STATUS {
-    ACTIVE = "ACTIVE",
-    INACTIVE = "INACTIVE",
-    CANCELED = "CANCELED",
-    NOT_STARTED = "NOT STARTED",
-    STARTED = "STARTED",
-    ENDED = "ENDED",
-    EXPIRED = "EXPIRED",
-    TERMINATED = "TERMINATED"
 }
 
 export const emptyListResponse = {

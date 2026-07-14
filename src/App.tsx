@@ -27,11 +27,13 @@ function App() {
     const storageKey = constants.LOCAL_STORAGE_TOKEN;
     const storageAdmin = constants.LOCAL_STORAGE_ADMIN;
     const storagePermission = constants.LOCAL_STORAGE_PERMISSIONS;
+    const storageProjectUuid = constants.PROJECT_UUID;
     const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem(storageAdmin));
     const [admin, setAdmin] = useState(JSON.parse(localStorage.getItem(storageAdmin)) || {});
     const [permissions, setPermissions] = useState(JSON.parse(localStorage.getItem(storagePermission)) || []);
     const [token, setToken] = useState(localStorage.getItem(storageKey) ? localStorage.getItem(storageKey) : false);
-    const userData = {loggedIn, admin, permissions, token, setLoggedIn, setAdmin, setToken, setPermissions};
+    const [projectUuid, setProjectUuid] = useState(localStorage.getItem(storageProjectUuid) ? localStorage.getItem(storageProjectUuid) : '');
+    const userData = {loggedIn, admin, permissions, token, projectUuid, setLoggedIn, setAdmin, setToken, setPermissions, setProjectUuid};
 
     const [toast, setToast] = useState(false);
     const [toastSeverity, setToastSeverity] = useState('info');

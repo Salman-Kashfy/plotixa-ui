@@ -8,7 +8,8 @@ import {NavLink} from "react-router-dom"
 import {useForm, Controller} from "react-hook-form"
 import {AdminContext} from '../../hooks/AdminContext';
 import {AdminLogin, UserPermissions} from "../../services/auth/auth.service";
-import {ROUTES, SUBSCRIPTION_STATUS} from "../../utils/constants";
+import {GetProjects} from "../../services/projects.service";
+import {ROUTES, SUBSCRIPTION_STATUS, constants} from "../../utils/constants";
 import FormInput from "../../components/FormInput";
 
 function Signin() {
@@ -36,11 +37,20 @@ function Signin() {
             if (data.status) {
                 adminContext.setAdmin(data.admin)
                 adminContext.setToken(data.token)
-                UserPermissions().then((response) => {
+                const developerUuid = data.admin?.developerUuid
+                Promise.all([
+                    UserPermissions(),
+                    GetProjects(developerUuid),
+                ]).then(([permissionsResponse, projectsResponse]) => {
                     setLoading(false)
-                    adminContext.setPermissions(response.data)
-                    if (response.status) {
-                        if(response.data.admin.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED){
+                    adminContext.setPermissions(permissionsResponse.data)
+                    if (projectsResponse?.status && projectsResponse.data?.length) {
+                        const firstProjectUuid = projectsResponse.data[0].uuid
+                        localStorage.setItem(constants.PROJECT_UUID, firstProjectUuid)
+                        adminContext.setProjectUuid(firstProjectUuid)
+                    }
+                    if (permissionsResponse.status) {
+                        if(permissionsResponse.data.admin?.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED){
                             navigate(ROUTES.SUBSCRIPTION.BILLING)
                         }else{
                             navigate(ROUTES.DASHBOARD)
@@ -50,6 +60,7 @@ function Signin() {
                     }
                 }).catch((error) => {
                     setLoading(false)
+                    console.log(error)
                     setErrorMessage(error.response.data.message)
                 })
             } else {
