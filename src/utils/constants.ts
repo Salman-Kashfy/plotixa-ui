@@ -188,6 +188,7 @@ export const constants = {
     API_URL: import.meta.env.VITE_BASE_URL + '/api',
     GRAPHQL_SERVER: import.meta.env.VITE_BASE_URL + '/graphql',
     STRIPE_PUBLIC_KEY: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
+    FAKE_RESPONSE: import.meta.env.VITE_FAKE_RESPONSE === 'true',
 };
 
 export const apiUrl = {
@@ -197,15 +198,13 @@ export const apiUrl = {
     userPermissions: '/user-permissions',
     uploadImage: '/upload-image',
     deleteFile: '/delete-file',
-    billingTotal: '/billing-total',
-    isGymPrefixUnique: '/is-gym-prefix-unique',
     createOtp: '/create-otp',
     verifyOtp: '/verify-otp',
     resetPassword: '/reset-password',
     invite: '/invite',
     validateInvite: '/validate-invite',
     dashboardStats: '/dashboard-stats',
-    biometricUpdateCustomer: '/biometric-update-customer',
+    
     // settings: 'settings',
 }
 

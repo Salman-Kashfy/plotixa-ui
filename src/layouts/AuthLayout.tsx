@@ -21,12 +21,6 @@ function AuthLayout({children}) {
                         </Box>
                         {children}
                     </Box>
-                    <Box sx={{textAlign: 'center'}}>
-                        <Typography variant="subtitle2" textAlign={'center'} sx={{mt: 3, mb:0.5,fontSize: 12}}>POWERED BY</Typography>
-                        <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                            <img src={companyLogo} width={150}/>
-                        </Box>
-                    </Box>
                 </Box>
             </Box>
         </AppProvider>

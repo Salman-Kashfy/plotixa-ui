@@ -2,7 +2,7 @@ import {apiUrl} from "../utils/constants";
 import {POST,GET} from "./api.service.wrapper";
 
 interface DashboardStatsInput {
-    gymId: string,
+    gymId?: string,
     start: any,
     end: any
 }

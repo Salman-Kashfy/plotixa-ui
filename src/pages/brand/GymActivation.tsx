@@ -27,8 +27,6 @@ import {BreadcrumbContext} from "../../hooks/BreadcrumbContext";
 import {ToastContext} from "../../hooks/ToastContext";
 import {NavLink, useParams} from "react-router-dom";
 import {GetBrand} from "../../services/brand.service";
-import {GetGyms} from "../../services/gym.service";
-import {SaveGymStatuses} from "../../services/subscription.service";
 
 function GymActivation() {
     const breadcrumbContext:any = useContext(BreadcrumbContext)
@@ -58,17 +56,7 @@ function GymActivation() {
     }
 
     const fetchGyms = () => {
-        return new Promise((res) => {
-            GetGyms({limit:0}, {brandId:id}).then((response:any) => {
-                const { list } = response
-                const statuses = list.map(({id, status}) => {
-                    return { gymId:id, status }
-                })
-                setGyms(list)
-                setValue('statuses', statuses)
-                res(true)
-            })
-        })
+        return new Promise((res) => { res(true) })
     }
     
     const loadData = async () => {
@@ -85,22 +73,7 @@ function GymActivation() {
         loadData()
     }, []);
 
-    const onSubmit = async (data) => {
-        setLoader(true)
-        SaveGymStatuses(data).then((response) => {
-            if(response.status){
-                toastContext.setToastSeverity('success')
-                toastContext.setToastMessage('Updated successfully.')
-            }else{
-                toastContext.setToastSeverity('error')
-                toastContext.setToastMessage(response.errorMessage)
-            }
-            toastContext.setToast(true)
-            setLoader(false)
-        }).catch((e) => {
-            setLoader(false)
-        })
-    }
+    const onSubmit = async (_data) => {}
 
     return (
         <Grid container spacing={2}>

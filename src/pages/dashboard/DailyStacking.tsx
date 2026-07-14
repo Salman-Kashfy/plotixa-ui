@@ -5,7 +5,7 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { Box, Card, CardContent, Typography, useMediaQuery, useTheme } from "@mui/material";
 import SkeletonLoader from "../../components/SkeletonLoader";
 
-function DailyStacking({ payments, height, loading = false }) {
+function DailyStacking({ payments, height = undefined, loading = false }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const chartHeight = height ?? (isMobile ? 260 : 300);

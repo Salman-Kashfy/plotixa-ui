@@ -1,0 +1,22 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVmN2ZhMTcyLTUxMzktNGFiZC04MDEyLTUyNDVjNGNkOTQ5ZSIsImtleSI6IkdvRko5MlVlIiwiaWF0IjoxNzgzOTg3Mjk1LCJleHAiOjE3ODQwMTYwOTV9.ybsnw41RyPs4j_AV_SqnRuB2cevIz7ieJ_s6xAXiI80",
+  "status": true,
+  "message": "Logged in successfully!",
+  "admin": {
+    "id": "ef7fa172-5139-4abd-8012-5245c4cd949e",
+    "firstName": "Plotixa",
+    "lastName": "",
+    "role": {
+      "id": "dd2b73bd-7b75-5c45-9c19-97f77e03697a",
+      "name": "Super Admin"
+    },
+    "roles": [
+      "super admin"
+    ],
+    "isAdmin": true,
+    "brands": [],
+    "gyms": [],
+    "subscriptionStatus": null,
+    "key": "GoFJ92Ue"
+  }
+}

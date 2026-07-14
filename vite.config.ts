@@ -27,7 +27,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     https: httpsConfig,
-    port: isProd ? 3000 : 5173
+    port: isProd ? 3000 : 5174
   },
   base: isProd ? '/' : './',
   build: {

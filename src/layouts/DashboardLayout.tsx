@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import { ThemeProvider } from '@mui/material/styles';
 import { useTheme, useMediaQuery } from '@mui/material';
 import { AppProvider } from '@toolpad/core/AppProvider';
-import {constants, ROUTES, SUBSCRIPTION_STATUS} from "../utils/constants";
+import {constants, ROUTES} from "../utils/constants";
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
@@ -20,7 +20,6 @@ import { BreadcrumbContext } from '../hooks/BreadcrumbContext';
 import {ToastContext} from '../hooks/ToastContext';
 import { GetToken } from '../services/auth/auth.service'
 import PermissionDenied from '../components/PermissionDenied'
-import Billing from '../pages/subscription/Billing'
 import * as React from "react";
 import Toast from "../components/Toast";
 import {AdminContext} from "../hooks/AdminContext";
@@ -104,11 +103,7 @@ function DashboardLayout({ children, isDarkMode, handleThemeChange }) {
                                 <></>
                         }
                         <Box sx={{px: 3}}>
-                            {
-                                adminContext.admin.subscriptionStatus !== 'EXPIRED' ?
-                                    children :
-                                    <Billing/>
-                            }
+                            {children}
                         </Box>
                     </Box>
                     {isMobileNav && <BottomNav onMenuOpen={() => setMobileNavOpen(true)} />}
@@ -135,17 +130,6 @@ const DashboardLayoutRoute = ({ isAuth, component: Component, permissionName }) 
         setIsDarkMode(_isDarkMode);
     }
 
-    /**
-    * Redirect to subscription billing if expired
-    * */
-    useEffect(() => {
-        if (
-            adminContext.admin.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED &&
-            location.pathname !== ROUTES.SUBSCRIPTION.BILLING
-        ) {
-            navigate(ROUTES.SUBSCRIPTION.BILLING, { replace: true });
-        }
-    }, [adminContext.admin.subscriptionStatus, location.pathname, navigate]);
 
     return (
         <>
