@@ -1,0 +1,22 @@
+{
+    "status": true,
+    "message": "Data fetched successfully!",
+    "data": [
+        {
+            "id": "1",
+            "expenseType": { "id": "1", "name": "Office Supplies" },
+            "amount": 150.00,
+            "createdAt": "2024-01-01T00:00:00.000Z"
+        },
+        {
+            "id": "2",
+            "expenseType": { "id": "2", "name": "Travel" },
+            "amount": 320.50,
+            "createdAt": "2024-01-02T00:00:00.000Z"
+        }
+    ],
+    "paging": {
+        "totalPages": 1,
+        "totalResultCount": 2
+    }
+}

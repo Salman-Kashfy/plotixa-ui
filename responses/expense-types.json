@@ -1,0 +1,9 @@
+{
+    "status": true,
+    "message": "Data fetched successfully!",
+    "data": [
+        { "id": "1", "name": "Office Supplies" },
+        { "id": "2", "name": "Travel" },
+        { "id": "3", "name": "Utilities" }
+    ]
+}

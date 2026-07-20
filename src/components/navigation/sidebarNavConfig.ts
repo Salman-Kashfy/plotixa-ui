@@ -1,6 +1,7 @@
 import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import TrendingDownOutlinedIcon from '@mui/icons-material/TrendingDownOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
-import { ROUTES } from '../../utils/constants';
+import { ROUTES, PERMISSIONS } from '../../utils/constants';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 export const DRAWER_WIDTH = 240;
@@ -16,6 +17,7 @@ export type SidebarNavItem = {
 
 export const sidebarNavItems: SidebarNavItem[] = [
     { key: 'dashboard', label: 'Dashboard', route: ROUTES.DASHBOARD, Icon: GridViewOutlinedIcon, bottomNav: true },
+    { key: 'expenses', label: 'Expenses', route: ROUTES.EXPENSE.LIST, permission: PERMISSIONS.EXPENSE.LIST, Icon: TrendingDownOutlinedIcon, bottomNav: true },
 ];
 
 export const bottomNavMenuItem = {

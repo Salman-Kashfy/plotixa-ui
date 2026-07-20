@@ -19,6 +19,9 @@ import CreateBrand from "./pages/brand/CreateBrand";
 import EditBrand from "./pages/brand/EditBrand";
 import ViewBrand from "./pages/brand/ViewBrand";
 import GymActivation from "./pages/brand/GymActivation";
+import Expense from "./pages/expense/Expense";
+import CreateExpense from "./pages/expense/CreateExpense";
+import EditExpense from "./pages/expense/EditExpense";
 
 // Supporting Components
 import PermissionDenied from "./components/PermissionDenied";
@@ -56,6 +59,9 @@ function App() {
                         <Route path={ROUTES.BRAND.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditBrand} permissionName={PERMISSIONS.BRAND.UPDATE} />} />
                         <Route path={ROUTES.BRAND.VIEW()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={ViewBrand} permissionName={PERMISSIONS.BRAND.LIST} />} />
                         <Route path={ROUTES.BRAND.ACTIVATION()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={GymActivation} permissionName={PERMISSIONS.BRAND.UPDATE} />} />
+                        <Route path={ROUTES.EXPENSE.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Expense} permissionName={PERMISSIONS.EXPENSE.LIST} />} />
+                        <Route path={ROUTES.EXPENSE.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateExpense} permissionName={PERMISSIONS.EXPENSE.CREATE} />} />
+                        <Route path={ROUTES.EXPENSE.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditExpense} permissionName={PERMISSIONS.EXPENSE.UPDATE} />} />
                     </Routes>
                 </Router>
             </ToastContext.Provider>

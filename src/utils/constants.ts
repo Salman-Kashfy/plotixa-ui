@@ -206,8 +206,8 @@ export const apiUrl = {
     invite: '/invite',
     validateInvite: '/validate-invite',
     dashboardStats: '/dashboard-stats',
-    
-    // settings: 'settings',
+    expenses: '/expenses',
+    expenseTypes: '/expense-types',
 }
 
 export const ROUTES = {
@@ -310,6 +310,9 @@ export const ROUTES = {
         EDIT: ((id = null) => '/expense/'+(id || ':id')+'/edit'),
         VIEW: ((id = null) => '/expense/'+(id || ':id')),
     },
+    EXPENSE_TYPE: {
+        LIST: '/expense-types',
+    },
     GYM_QR_SESSION: {
         LIST: '/attendance',
         VIEW: ((id = null) => '/attendance/'+(id || ':id')),
@@ -406,6 +409,12 @@ export const PERMISSIONS = {
         CREATE: 'expense:create',
         UPDATE: 'expense:update',
         DELETE: 'expense:delete',
+    },
+    EXPENSE_TYPE: {
+        LIST: 'expense_type:view',
+        CREATE: 'expense_type:create',
+        UPDATE: 'expense_type:update',
+        DELETE: 'expense_type:delete',
     },
     REPORT: {
         PT_COMMISSION: 'report:pt_commission',
