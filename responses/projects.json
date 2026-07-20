@@ -7,6 +7,7 @@
             "name":"Saima Heaven",
             "description":"Project 1 description",
             "createdAt":"2021-01-01",
+            "currencyCode":"PKR",
             "updatedAt":"2021-01-01"
         },
         {
@@ -14,6 +15,7 @@
             "name":"Saima Arabian",
             "description":"Project 1 description",
             "createdAt":"2021-01-01",
+            "currencyCode":"PKR",
             "updatedAt":"2021-01-01"
         }
     ]

@@ -6,6 +6,7 @@ import {
     FormControl, InputLabel, Select, MenuItem,
     IconButton, Tooltip, FormHelperText,
     Accordion, AccordionSummary, AccordionDetails,
+    TextField, InputAdornment,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,6 +17,7 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
+import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { GetExpenseTypes, CreateExpense as _CreateExpense } from '../../services/expense.service';
@@ -30,7 +32,11 @@ const MAX_EXPENSES = 12;
 function CreateExpense() {
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
     const navigate = useNavigate();
+    const currencyCode = adminContext.projects?.find(
+        (p: any) => p.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const [loading, setLoading] = useState(false);
     const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
     const [typesLoading, setTypesLoading] = useState(false);
@@ -153,7 +159,7 @@ function CreateExpense() {
                                             </Typography>
                                             {amount ? (
                                                 <Typography component="span" sx={{ fontWeight: 500 }}>
-                                                    {Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                    {currencyCode ? `${currencyCode} ` : ''}{Number(amount).toLocaleString()}
                                                 </Typography>
                                             ) : null}
                                         </Box>
@@ -203,30 +209,24 @@ function CreateExpense() {
                                                     control={control}
                                                     rules={{
                                                         required: { value: true, message: 'Amount is required' },
-                                                        min: { value: 0.01, message: 'Amount must be greater than 0' },
+                                                        min: { value: 1, message: 'Amount must be greater than 0' },
                                                     }}
                                                     render={({ field: f, fieldState: { error } }) => (
-                                                        <FormControl variant="standard" fullWidth error={!!error}>
-                                                            <InputLabel shrink>Amount</InputLabel>
-                                                            <input
-                                                                {...f}
-                                                                type="number"
-                                                                step="0.01"
-                                                                min="0"
-                                                                placeholder="0.00"
-                                                                style={{
-                                                                    border: 'none',
-                                                                    borderBottom: `1px solid ${error ? '#d32f2f' : 'rgba(0,0,0,0.42)'}`,
-                                                                    outline: 'none',
-                                                                    background: 'transparent',
-                                                                    width: '100%',
-                                                                    padding: '16px 0 4px',
-                                                                    fontSize: '1rem',
-                                                                    color: 'inherit',
-                                                                }}
-                                                            />
-                                                            {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
-                                                        </FormControl>
+                                                        <TextField
+                                                            {...f}
+                                                            label="Amount"
+                                                            type="number"
+                                                            variant="standard"
+                                                            fullWidth
+                                                            error={!!error}
+                                                            helperText={error?.message}
+                                                            inputProps={{ step: '1', min: '0' }}
+                                                            InputProps={currencyCode ? {
+                                                                startAdornment: (
+                                                                    <InputAdornment position="start">{currencyCode}</InputAdornment>
+                                                                ),
+                                                            } : undefined}
+                                                        />
                                                     )}
                                                 />
                                             </Grid>
@@ -243,7 +243,7 @@ function CreateExpense() {
                                         <FunctionsIcon sx={{ color: 'primary.main' }} />
                                         <Typography color="primary" sx={{ fontWeight: 500 }}>Total</Typography>
                                         <Typography sx={{ fontWeight: 500 }}>
-                                            {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            {currencyCode ? `${currencyCode} ` : ''}{total.toLocaleString()}
                                         </Typography>
                                     </Box>
                                 </AccordionDetails>

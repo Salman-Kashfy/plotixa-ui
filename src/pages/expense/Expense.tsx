@@ -64,7 +64,7 @@ function Expense() {
             const nextRows = list.map((e: any) => ({
                 id: e.id,
                 expenseType: e.expenseType?.name || '—',
-                amount: e.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+                amount: e.amount?.toLocaleString(),
                 createdAt: e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '—',
                 actions: (
                     <Box sx={{ display: 'flex' }}>

@@ -15,6 +15,7 @@ import { hasPermission } from '../../utils/permissions';
 import { PERMISSIONS } from '../../utils/constants';
 import ExpenseTypeDialog from './ExpenseTypeDialog';
 import { ToastContext } from '../../hooks/ToastContext';
+import { AdminContext } from '../../hooks/AdminContext';
 
 type ExpenseType = { id: string; name: string };
 
@@ -28,6 +29,10 @@ type Props = {
 
 function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = false }: Props) {
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
+    const currencyCode = adminContext.projects?.find(
+        (p: any) => p.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
     const [typesLoading, setTypesLoading] = useState(false);
     const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -130,9 +135,9 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                             <Controller
                                 name="amount"
                                 control={control}
-                                rules={{
+                                    rules={{
                                     required: { value: true, message: 'Amount is required' },
-                                    min: { value: 0.01, message: 'Amount must be greater than 0' },
+                                    min: { value: 1, message: 'Amount must be greater than 0' },
                                 }}
                                 render={({ field, fieldState: { error } }) => (
                                     <FormInput
@@ -142,6 +147,11 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                         field={field}
                                         value={field.value}
                                         label="Amount"
+                                        InputProps={currencyCode ? {
+                                            startAdornment: (
+                                                <InputAdornment position="start">{currencyCode}</InputAdornment>
+                                            ),
+                                        } : undefined}
                                     />
                                 )}
                             />
