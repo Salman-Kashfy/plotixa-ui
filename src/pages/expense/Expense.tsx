@@ -1,9 +1,10 @@
 import { useEffect, useState, useContext } from 'react';
 import {
-    Card, CardContent, Box,
+    Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
     IconButton,
+    useTheme, useMediaQuery,
 } from '@mui/material';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -16,8 +17,11 @@ import { GetExpenses, DeleteExpense } from '../../services/expense.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
+import ListingCard from '../../components/ListingCard';
 
 function Expense() {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
     const [page, setPage] = useState(0);
@@ -33,9 +37,9 @@ function Expense() {
 
     const columns = [
         { id: 'expenseType', label: 'Expense Type', minWidth: 200 },
-        { id: 'amount', label: 'Amount', minWidth: 150 },
-        { id: 'createdAt', label: 'Date', minWidth: 150 },
-        { id: 'actions', label: 'Actions', minWidth: 100 },
+        { id: 'amount',      label: 'Amount',        minWidth: 150 },
+        { id: 'createdAt',   label: 'Date',           minWidth: 150 },
+        { id: 'actions',     label: 'Actions',        minWidth: 100 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => {
@@ -96,41 +100,65 @@ function Expense() {
             <PageTitle title="Expenses" btn={btn} />
             <Card>
                 <CardContent sx={{ p: 3 }}>
-                    <TableContainer>
-                        <Table stickyHeader aria-label="expenses table">
-                            <TableHead>
-                                <TableRow>
-                                    {columns.map((col) => (
-                                        <TableCell key={col.id} style={{ minWidth: col.minWidth }}>{col.label}</TableCell>
+                    <Box>
+                        {isMobile ? (
+                            <>
+                                <Stack spacing={2} sx={{ opacity: loading && rows.length ? 0.5 : 1 }}>
+                                    {rows.map((row) => (
+                                        <ListingCard key={row.id} row={row} columns={columns} />
                                     ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {rows.map((row) => (
-                                    <TableRow hover key={row.id} sx={{ opacity: loading ? 0.2 : 1 }}>
-                                        {columns.map((col) => (
-                                            <TableCell key={col.id}>{row[col.id]}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                                <TableSpinner loading={loading} colSpan={columns.length} rowCount={rows.length} />
-                                <NoRowsFound loading={loading} colSpan={columns.length} rowCount={rows.length} />
-                            </TableBody>
-                            <TableFooter>
+                                </Stack>
                                 {loading && !rows.length ? (
-                                    <TableSpinner loading colSpan={columns.length} rowCount={rows.length} />
+                                    <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+                                        <CircularProgress />
+                                    </Box>
                                 ) : null}
-                            </TableFooter>
-                        </Table>
-                    </TableContainer>
-                    <TablePagination
-                        component="div"
-                        count={paging.totalResultCount}
-                        rowsPerPage={constants.PER_PAGE}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        rowsPerPageOptions={[]}
-                    />
+                                {!loading && !rows.length ? (
+                                    <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
+                                        No expenses found
+                                    </Box>
+                                ) : null}
+                            </>
+                        ) : (
+                            <TableContainer sx={{ overflowX: 'auto' }}>
+                                <Table stickyHeader aria-label="expenses table" sx={{ minWidth: 600 }}>
+                                    <TableHead>
+                                        <TableRow>
+                                            {columns.map((col) => (
+                                                <TableCell key={col.id} style={{ minWidth: col.minWidth }}>
+                                                    {col.label}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {rows.map((row) => (
+                                            <TableRow hover key={row.id} sx={{ opacity: loading ? 0.2 : 1 }}>
+                                                {columns.map((col) => (
+                                                    <TableCell key={col.id}>{row[col.id]}</TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                        <TableSpinner loading={loading} colSpan={columns.length} rowCount={rows.length} />
+                                        <NoRowsFound loading={loading} colSpan={columns.length} rowCount={rows.length} />
+                                    </TableBody>
+                                    <TableFooter>
+                                        {loading && !rows.length ? (
+                                            <TableSpinner loading colSpan={columns.length} rowCount={rows.length} />
+                                        ) : null}
+                                    </TableFooter>
+                                </Table>
+                            </TableContainer>
+                        )}
+                        <TablePagination
+                            component="div"
+                            count={paging.totalResultCount}
+                            rowsPerPage={constants.PER_PAGE}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            rowsPerPageOptions={[]}
+                        />
+                    </Box>
                 </CardContent>
             </Card>
         </>
