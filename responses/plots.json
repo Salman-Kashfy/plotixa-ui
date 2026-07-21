@@ -4,14 +4,14 @@
     "data": [
         {
             "id": "1",
-            "block": { "id": "1", "name": "Block A" },
+            "block": { "id": "1", "name": "A" },
             "category": { "id": "1", "name": "Residential" },
             "plotNo": 1,
             "createdAt": "2024-01-01T00:00:00.000Z"
         },
         {
             "id": "2",
-            "block": { "id": "2", "name": "Block B" },
+            "block": { "id": "2", "name": "B" },
             "category": { "id": "2", "name": "Commercial" },
             "plotNo": 2,
             "createdAt": "2024-01-02T00:00:00.000Z"

@@ -2,8 +2,8 @@
     "status": true,
     "message": "Data fetched successfully!",
     "data": [
-        { "id": "1", "name": "Block A" },
-        { "id": "2", "name": "Block B" },
-        { "id": "3", "name": "Block C" }
+        { "id": "1", "name": "A" },
+        { "id": "2", "name": "B" },
+        { "id": "3", "name": "C" }
     ]
 }

@@ -3,9 +3,10 @@ import {
     Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
-    IconButton,
+    IconButton, FormControl, InputLabel, Select, MenuItem,
     useTheme, useMediaQuery,
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { NavLink } from 'react-router-dom';
@@ -13,7 +14,7 @@ import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { ROUTES, constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetPlots, DeletePlot } from '../../services/plot.service';
+import { GetPlots, DeletePlot, GetPlotBlocks, GetPlotCategories } from '../../services/plot.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -28,6 +29,10 @@ function Plot() {
     const [paging, setPaging] = useState({ totalPages: 0, totalResultCount: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
+    const [blocks, setBlocks] = useState<{ id: string; name: string }[]>([]);
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [blockId, setBlockId] = useState('');
+    const [categoryId, setCategoryId] = useState('');
 
     const btn = {
         to: ROUTES.PLOT.CREATE,
@@ -36,13 +41,15 @@ function Plot() {
     };
 
     const columns = [
-        { id: 'plotNo',   label: 'Plot No',  minWidth: 120 },
-        { id: 'block',    label: 'Block',    minWidth: 160 },
+        { id: 'plot',     label: 'Plot',     minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 160 },
         { id: 'actions',  label: 'Actions',  minWidth: 100 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
+
+    const handleBlockChange = (value: string) => { setBlockId(value); setPage(0); };
+    const handleCategoryChange = (value: string) => { setCategoryId(value); setPage(0); };
 
     const handleDelete = (id: string) => {
         DeletePlot(id).then((res) => {
@@ -57,12 +64,14 @@ function Plot() {
 
     const fetchRows = () => {
         if (!loading) setLoading(true);
-        GetPlots({ page: page + 1 }).then((response: any) => {
+        const params: any = {};
+        if (blockId) params.blockId = blockId;
+        if (categoryId) params.categoryId = categoryId;
+        GetPlots({ page: page + 1 }, params).then((response: any) => {
             const list = response.data || [];
             setRows(list.map((e: any) => ({
                 id: e.id,
-                plotNo: e.plotNo,
-                block: e.block?.name || '—',
+                plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
                 actions: (
                     <Box sx={{ display: 'flex' }}>
@@ -86,13 +95,43 @@ function Plot() {
 
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([{ name: 'Plots' }]);
+        GetPlotBlocks().then(setBlocks);
+        GetPlotCategories().then(setCategories);
     }, []);
 
-    useEffect(() => { fetchRows(); }, [page]);
+    useEffect(() => { fetchRows(); }, [page, blockId, categoryId]);
 
     return (
         <>
             <PageTitle title="Plots" btn={btn} />
+            <Card sx={{ mb: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                            <FormControl variant="standard" fullWidth>
+                                <InputLabel>Block</InputLabel>
+                                <Select value={blockId} onChange={(e) => handleBlockChange(e.target.value)} label="Block">
+                                    <MenuItem value="">All</MenuItem>
+                                    {blocks.map((b) => (
+                                        <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                            <FormControl variant="standard" fullWidth>
+                                <InputLabel>Category</InputLabel>
+                                <Select value={categoryId} onChange={(e) => handleCategoryChange(e.target.value)} label="Category">
+                                    <MenuItem value="">All</MenuItem>
+                                    {categories.map((c) => (
+                                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </CardContent>
+            </Card>
             <Card>
                 <CardContent sx={{ p: 3 }}>
                     <Box>
@@ -116,7 +155,7 @@ function Plot() {
                             </>
                         ) : (
                             <TableContainer sx={{ overflowX: 'auto' }}>
-                                <Table stickyHeader aria-label="plots table" sx={{ minWidth: 650 }}>
+                                <Table stickyHeader aria-label="plots table" sx={{ minWidth: 450 }}>
                                     <TableHead>
                                         <TableRow>
                                             {columns.map((col) => (
