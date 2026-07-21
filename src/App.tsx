@@ -25,6 +25,9 @@ import EditExpense from "./pages/expense/EditExpense";
 import Plot from "./pages/plot/Plot";
 import CreatePlot from "./pages/plot/CreatePlot";
 import EditPlot from "./pages/plot/EditPlot";
+import Customer from "./pages/customer/Customer";
+import CreateCustomer from "./pages/customer/CreateCustomer";
+import EditCustomer from "./pages/customer/EditCustomer";
 
 // Supporting Components
 import PermissionDenied from "./components/PermissionDenied";
@@ -68,6 +71,9 @@ function App() {
                         <Route path={ROUTES.PLOT.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Plot} permissionName={PERMISSIONS.PLOT.LIST} />} />
                         <Route path={ROUTES.PLOT.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreatePlot} permissionName={PERMISSIONS.PLOT.CREATE} />} />
                         <Route path={ROUTES.PLOT.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditPlot} permissionName={PERMISSIONS.PLOT.UPDATE} />} />
+                        <Route path={ROUTES.CUSTOMER.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Customer} permissionName={PERMISSIONS.CUSTOMER.LIST} />} />
+                        <Route path={ROUTES.CUSTOMER.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateCustomer} permissionName={PERMISSIONS.CUSTOMER.CREATE} />} />
+                        <Route path={ROUTES.CUSTOMER.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditCustomer} permissionName={PERMISSIONS.CUSTOMER.UPDATE} />} />
                     </Routes>
                 </Router>
             </ToastContext.Provider>

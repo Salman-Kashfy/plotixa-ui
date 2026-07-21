@@ -1,0 +1,22 @@
+{
+    "status": true,
+    "message": "Data fetched successfully!",
+    "data": [
+        {
+            "id": "1",
+            "name": "Ali Hassan",
+            "phoneCode": "+92",
+            "phoneNumber": "3001234567"
+        },
+        {
+            "id": "2",
+            "name": "Sara Khan",
+            "phoneCode": "+92",
+            "phoneNumber": "3119876543"
+        }
+    ],
+    "paging": {
+        "totalPages": 1,
+        "totalResultCount": 2
+    }
+}

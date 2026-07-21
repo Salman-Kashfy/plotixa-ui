@@ -211,6 +211,7 @@ export const apiUrl = {
     plots: '/plots',
     plotBlocks: '/plot-blocks',
     plotCategories: '/plot-categories',
+    customers: '/customers',
 }
 
 export const ROUTES = {
@@ -326,6 +327,11 @@ export const ROUTES = {
     },
     PLOT_CATEGORY: {
         LIST: '/plot-categories',
+    },
+    CUSTOMER: {
+        LIST: '/customers',
+        CREATE: '/customer/create',
+        EDIT: ((id = null) => '/customer/' + (id || ':id') + '/edit'),
     },
     GYM_QR_SESSION: {
         LIST: '/attendance',
@@ -447,6 +453,12 @@ export const PERMISSIONS = {
         CREATE: 'plot_category:create',
         UPDATE: 'plot_category:update',
         DELETE: 'plot_category:delete',
+    },
+    CUSTOMER: {
+        LIST: 'customer:view',
+        CREATE: 'customer:create',
+        UPDATE: 'customer:update',
+        DELETE: 'customer:delete',
     },
     REPORT: {
         PT_COMMISSION: 'report:pt_commission',
