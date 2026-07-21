@@ -208,6 +208,9 @@ export const apiUrl = {
     dashboardStats: '/dashboard-stats',
     expenses: '/expenses',
     expenseTypes: '/expense-types',
+    plots: '/plots',
+    plotBlocks: '/plot-blocks',
+    plotCategories: '/plot-categories',
 }
 
 export const ROUTES = {
@@ -313,6 +316,17 @@ export const ROUTES = {
     EXPENSE_TYPE: {
         LIST: '/expense-types',
     },
+    PLOT: {
+        LIST: '/plots',
+        CREATE: '/plot/create',
+        EDIT: ((id = null) => '/plot/' + (id || ':id') + '/edit'),
+    },
+    PLOT_BLOCK: {
+        LIST: '/plot-blocks',
+    },
+    PLOT_CATEGORY: {
+        LIST: '/plot-categories',
+    },
     GYM_QR_SESSION: {
         LIST: '/attendance',
         VIEW: ((id = null) => '/attendance/'+(id || ':id')),
@@ -415,6 +429,24 @@ export const PERMISSIONS = {
         CREATE: 'expense_type:create',
         UPDATE: 'expense_type:update',
         DELETE: 'expense_type:delete',
+    },
+    PLOT: {
+        LIST: 'plot:view',
+        CREATE: 'plot:create',
+        UPDATE: 'plot:update',
+        DELETE: 'plot:delete',
+    },
+    PLOT_BLOCK: {
+        LIST: 'plot_block:view',
+        CREATE: 'plot_block:create',
+        UPDATE: 'plot_block:update',
+        DELETE: 'plot_block:delete',
+    },
+    PLOT_CATEGORY: {
+        LIST: 'plot_category:view',
+        CREATE: 'plot_category:create',
+        UPDATE: 'plot_category:update',
+        DELETE: 'plot_category:delete',
     },
     REPORT: {
         PT_COMMISSION: 'report:pt_commission',
