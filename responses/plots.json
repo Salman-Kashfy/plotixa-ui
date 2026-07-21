@@ -6,14 +6,14 @@
             "id": "1",
             "block": { "id": "1", "name": "Block A" },
             "category": { "id": "1", "name": "Residential" },
-            "noOfPlots": 25,
+            "plotNo": 1,
             "createdAt": "2024-01-01T00:00:00.000Z"
         },
         {
             "id": "2",
             "block": { "id": "2", "name": "Block B" },
             "category": { "id": "2", "name": "Commercial" },
-            "noOfPlots": 10,
+            "plotNo": 2,
             "createdAt": "2024-01-02T00:00:00.000Z"
         }
     ],

@@ -36,11 +36,10 @@ function Plot() {
     };
 
     const columns = [
-        { id: 'block',      label: 'Block',        minWidth: 160 },
-        { id: 'category',   label: 'Category',     minWidth: 160 },
-        { id: 'noOfPlots',  label: 'No of Plots',  minWidth: 120 },
-        { id: 'createdAt',  label: 'Date',          minWidth: 140 },
-        { id: 'actions',    label: 'Actions',       minWidth: 100 },
+        { id: 'plotNo',   label: 'Plot No',  minWidth: 120 },
+        { id: 'block',    label: 'Block',    minWidth: 160 },
+        { id: 'category', label: 'Category', minWidth: 160 },
+        { id: 'actions',  label: 'Actions',  minWidth: 100 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
@@ -62,10 +61,9 @@ function Plot() {
             const list = response.data || [];
             setRows(list.map((e: any) => ({
                 id: e.id,
+                plotNo: e.plotNo,
                 block: e.block?.name || '—',
                 category: e.category?.name || '—',
-                noOfPlots: e.noOfPlots?.toLocaleString(),
-                createdAt: e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '—',
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.PLOT.UPDATE) && (
