@@ -212,6 +212,7 @@ export const apiUrl = {
     plotBlocks: '/plot-blocks',
     plotCategories: '/plot-categories',
     customers: '/customers',
+    tokens: '/tokens',
 }
 
 export const ROUTES = {
@@ -332,6 +333,11 @@ export const ROUTES = {
         LIST: '/customers',
         CREATE: '/customer/create',
         EDIT: ((id = null) => '/customer/' + (id || ':id') + '/edit'),
+    },
+    TOKEN: {
+        LIST: '/tokens',
+        CREATE: '/token/create',
+        EDIT: ((id = null) => '/token/' + (id || ':id') + '/edit'),
     },
     GYM_QR_SESSION: {
         LIST: '/attendance',
@@ -460,6 +466,12 @@ export const PERMISSIONS = {
         UPDATE: 'customer:update',
         DELETE: 'customer:delete',
     },
+    TOKEN: {
+        LIST: 'token:view',
+        CREATE: 'token:create',
+        UPDATE: 'token:update',
+        DELETE: 'token:delete',
+    },
     REPORT: {
         PT_COMMISSION: 'report:pt_commission',
     },
@@ -576,4 +588,16 @@ export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'inf
     [PLOT_STATUS.BOOKED]: 'warning',
     [PLOT_STATUS.TOKEN]: 'info',
     [PLOT_STATUS.SOLD]: 'error',
+};
+
+export enum TOKEN_STATUS {
+    ACTIVE = 'ACTIVE',
+    EXPIRED = 'EXPIRED',
+    REFUNDED = 'REFUNDED',
+}
+
+export const TOKEN_STATUS_COLOR: Record<TOKEN_STATUS, 'success' | 'error' | 'warning'> = {
+    [TOKEN_STATUS.ACTIVE]: 'success',
+    [TOKEN_STATUS.EXPIRED]: 'error',
+    [TOKEN_STATUS.REFUNDED]: 'warning',
 };
