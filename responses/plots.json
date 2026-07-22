@@ -7,6 +7,7 @@
             "block": { "id": "1", "name": "A" },
             "category": { "id": "1", "name": "Residential" },
             "plotNo": 1,
+            "status": "AVAILABLE",
             "createdAt": "2024-01-01T00:00:00.000Z"
         },
         {
@@ -14,11 +15,28 @@
             "block": { "id": "2", "name": "B" },
             "category": { "id": "2", "name": "Commercial" },
             "plotNo": 2,
+            "status": "BOOKED",
             "createdAt": "2024-01-02T00:00:00.000Z"
+        },
+        {
+            "id": "3",
+            "block": { "id": "1", "name": "A" },
+            "category": { "id": "1", "name": "Residential" },
+            "plotNo": 3,
+            "status": "TOKEN",
+            "createdAt": "2024-01-03T00:00:00.000Z"
+        },
+        {
+            "id": "4",
+            "block": { "id": "2", "name": "B" },
+            "category": { "id": "2", "name": "Commercial" },
+            "plotNo": 4,
+            "status": "SOLD",
+            "createdAt": "2024-01-04T00:00:00.000Z"
         }
     ],
     "paging": {
         "totalPages": 1,
-        "totalResultCount": 2
+        "totalResultCount": 4
     }
 }

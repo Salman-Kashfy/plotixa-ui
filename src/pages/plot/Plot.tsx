@@ -3,7 +3,7 @@ import {
     Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
-    IconButton, FormControl, InputLabel, Select, MenuItem,
+    IconButton, FormControl, InputLabel, Select, MenuItem, Chip,
     useTheme, useMediaQuery,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -12,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { NavLink } from 'react-router-dom';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
-import { ROUTES, constants, PERMISSIONS } from '../../utils/constants';
+import { ROUTES, constants, PERMISSIONS, PLOT_STATUS, PLOT_STATUS_COLOR } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { GetPlots, DeletePlot, GetPlotBlocks, GetPlotCategories } from '../../services/plot.service';
 import PageTitle from '../../components/PageTitle';
@@ -33,6 +33,7 @@ function Plot() {
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [blockId, setBlockId] = useState('');
     const [categoryId, setCategoryId] = useState('');
+    const [status, setStatus] = useState('');
 
     const btn = {
         to: ROUTES.PLOT.CREATE,
@@ -43,6 +44,7 @@ function Plot() {
     const columns = [
         { id: 'plot',     label: 'Plot',     minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 160 },
+        { id: 'status',   label: 'Status',   minWidth: 120 },
         { id: 'actions',  label: 'Actions',  minWidth: 100 },
     ];
 
@@ -50,6 +52,7 @@ function Plot() {
 
     const handleBlockChange = (value: string) => { setBlockId(value); setPage(0); };
     const handleCategoryChange = (value: string) => { setCategoryId(value); setPage(0); };
+    const handleStatusChange = (value: string) => { setStatus(value); setPage(0); };
 
     const handleDelete = (id: string) => {
         DeletePlot(id).then((res) => {
@@ -67,12 +70,20 @@ function Plot() {
         const params: any = {};
         if (blockId) params.blockId = blockId;
         if (categoryId) params.categoryId = categoryId;
+        if (status) params.status = status;
         GetPlots({ page: page + 1 }, params).then((response: any) => {
             const list = response.data || [];
             setRows(list.map((e: any) => ({
                 id: e.id,
                 plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
+                status: (
+                    <Chip
+                        label={e.status}
+                        color={PLOT_STATUS_COLOR[e.status as PLOT_STATUS] || 'default'}
+                        size="small"
+                    />
+                ),
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.PLOT.UPDATE) && (
@@ -99,7 +110,7 @@ function Plot() {
         GetPlotCategories().then(setCategories);
     }, []);
 
-    useEffect(() => { fetchRows(); }, [page, blockId, categoryId]);
+    useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status]);
 
     return (
         <>
@@ -125,6 +136,19 @@ function Plot() {
                                     <MenuItem value="">All</MenuItem>
                                     {categories.map((c) => (
                                         <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                            <FormControl variant="standard" fullWidth>
+                                <InputLabel>Status</InputLabel>
+                                <Select value={status} onChange={(e) => handleStatusChange(e.target.value)} label="Status">
+                                    <MenuItem value="">All</MenuItem>
+                                    {Object.values(PLOT_STATUS).map((s) => (
+                                        <MenuItem key={s} value={s}>
+                                            <Chip label={s} color={PLOT_STATUS_COLOR[s]} size="small" />
+                                        </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>

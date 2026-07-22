@@ -563,3 +563,17 @@ export enum GYM_QR_SESSION_STATE {
     OVERTIME_IN = 'Overtime in',
     OVERTIME_OUT = 'Overtime out',
 }
+
+export enum PLOT_STATUS {
+    AVAILABLE = 'AVAILABLE',
+    BOOKED = 'BOOKED',
+    TOKEN = 'TOKEN',
+    SOLD = 'SOLD',
+}
+
+export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'info' | 'error'> = {
+    [PLOT_STATUS.AVAILABLE]: 'success',
+    [PLOT_STATUS.BOOKED]: 'warning',
+    [PLOT_STATUS.TOKEN]: 'info',
+    [PLOT_STATUS.SOLD]: 'error',
+};
