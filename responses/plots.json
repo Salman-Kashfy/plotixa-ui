@@ -7,6 +7,7 @@
             "block": { "id": "1", "name": "A" },
             "category": { "id": "1", "name": "Residential" },
             "plotNo": 1,
+            "price": 2500000,
             "status": "AVAILABLE",
             "createdAt": "2024-01-01T00:00:00.000Z"
         },
@@ -15,6 +16,7 @@
             "block": { "id": "2", "name": "B" },
             "category": { "id": "2", "name": "Commercial" },
             "plotNo": 2,
+            "price": 3000000,
             "status": "BOOKED",
             "createdAt": "2024-01-02T00:00:00.000Z"
         },
@@ -23,6 +25,7 @@
             "block": { "id": "1", "name": "A" },
             "category": { "id": "1", "name": "Residential" },
             "plotNo": 3,
+            "price": 1800000,
             "status": "TOKEN",
             "createdAt": "2024-01-03T00:00:00.000Z"
         },
@@ -31,6 +34,7 @@
             "block": { "id": "2", "name": "B" },
             "category": { "id": "2", "name": "Commercial" },
             "plotNo": 4,
+            "price": 4200000,
             "status": "SOLD",
             "createdAt": "2024-01-04T00:00:00.000Z"
         }

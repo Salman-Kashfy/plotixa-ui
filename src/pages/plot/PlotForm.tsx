@@ -2,8 +2,9 @@ import { useContext, useEffect, useState } from 'react';
 import {
     Box, Card, CardContent, Typography,
     FormControl, InputLabel, Select, MenuItem,
-    IconButton, Tooltip, FormHelperText,
+    IconButton, Tooltip, FormHelperText, InputAdornment,
 } from '@mui/material';
+import { AdminContext } from '../../hooks/AdminContext';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -30,6 +31,10 @@ type Props = {
 
 function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, create = false }: Props) {
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
+    const currencyCode = adminContext.projects?.find(
+        (p: any) => p.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const [blocks, setBlocks] = useState<CrudOption[]>([]);
     const [categories, setCategories] = useState<CrudOption[]>([]);
     const [blocksLoading, setBlocksLoading] = useState(false);
@@ -50,6 +55,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         blockId: '',
         categoryId: '',
         noOfPlots: '',
+        price: '',
     };
 
     const { control, handleSubmit, reset } = useForm({
@@ -59,6 +65,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
             blockId: data.block?.id || '',
             categoryId: data.category?.id || '',
             noOfPlots: data.noOfPlots || '',
+            price: data.price || '',
         },
     });
 
@@ -86,6 +93,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 blockId: data.block?.id || '',
                 categoryId: data.category?.id || '',
                 noOfPlots: data.noOfPlots || '',
+                price: data.price || '',
             });
         }
     }, [data, reset]);
@@ -100,6 +108,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         const _data: any = {
             blockId: formData.blockId,
             categoryId: formData.categoryId,
+            price: Number(formData.price),
         };
         if (formData.id) _data.id = formData.id;
         if (create) _data.noOfPlots = Number(formData.noOfPlots);
@@ -197,6 +206,34 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                                 />
                             </Grid>
                         )}
+
+                        {/* Price */}
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="price"
+                                control={control}
+                                rules={{
+                                    required: { value: true, message: 'Price is required' },
+                                    min: { value: 1, message: 'Price must be greater than 0' },
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <FormInput
+                                        fullWidth
+                                        type="number"
+                                        error={error}
+                                        field={field}
+                                        value={field.value}
+                                        label="Price"
+                                        inputProps={{ step: '1', min: '1' }}
+                                        InputProps={currencyCode ? {
+                                            startAdornment: (
+                                                <InputAdornment position="start">{currencyCode}</InputAdornment>
+                                            ),
+                                        } : undefined}
+                                    />
+                                )}
+                            />
+                        </Grid>
 
                     </Grid>
                 </CardContent>
