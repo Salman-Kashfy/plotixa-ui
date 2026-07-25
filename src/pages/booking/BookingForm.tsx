@@ -11,7 +11,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
-import { GetPlots } from '../../services/plot.service';
+import { GetPlots, GetPlotCategories } from '../../services/plot.service';
 import { AdminContext } from '../../hooks/AdminContext';
 import { TENURE_OPTIONS } from '../../utils/constants';
 
@@ -23,7 +23,15 @@ type Props = {
     formLoader?: boolean;
 };
 
-type InstallmentRow = { month: number; amount: number; isQuarterly: boolean };
+type InstallmentRow = { month: number; label: string; amount: number; isQuarterly: boolean };
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function monthLabel(index: number): string {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() + index);
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 function computeInstallments(
     plotPrice: number,
@@ -43,9 +51,8 @@ function computeInstallments(
     const totalSlots = tenure + numQuarterly;
     const perSlot = totalSlots > 0 ? remaining / totalSlots : 0;
 
-    // If quarterly is user-specified and non-zero, use it; otherwise auto from perSlot
     const effectiveQuarterly = quarterly > 0 ? quarterly : perSlot;
-    const monthlyFromQuarterly = numQuarterly > 0
+    const monthlyBase = numQuarterly > 0
         ? (remaining - effectiveQuarterly * numQuarterly) / tenure
         : remaining / tenure;
 
@@ -54,7 +61,8 @@ function computeInstallments(
         const isQ = numQuarterly > 0 && m % 4 === 0 && Math.floor(m / 4) <= numQuarterly;
         rows.push({
             month: m,
-            amount: isQ ? monthlyFromQuarterly + effectiveQuarterly : monthlyFromQuarterly,
+            label: monthLabel(m - 1),
+            amount: isQ ? monthlyBase + effectiveQuarterly : monthlyBase,
             isQuarterly: isQ,
         });
     }
@@ -72,7 +80,10 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         (p: any) => p.uuid === adminContext.projectUuid
     )?.currencyCode || '';
 
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [categoryId, setCategoryId] = useState('');
     const [plots, setPlots] = useState<any[]>([]);
+    const [plotsLoading, setPlotsLoading] = useState(false);
     const [plotPrice, setPlotPrice] = useState<number>(0);
 
     const defaultValues = {
@@ -104,15 +115,28 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     const watched = useWatch({ control });
 
-    // Fetch plots on mount
+    // Fetch categories on mount
     useEffect(() => {
-        GetPlots({ page: 1, limit: 200 }, {}).then((res) => setPlots(res.data || []));
+        GetPlotCategories().then(setCategories);
     }, []);
 
-    // Populate price when plot is pre-selected (edit mode)
+    // Fetch plots when category changes
+    useEffect(() => {
+        if (!categoryId) { setPlots([]); return; }
+        setPlotsLoading(true);
+        GetPlots({ page: 1, limit: 200 }, { categoryId }).then((res) => {
+            setPlots(res.data || []);
+            setPlotsLoading(false);
+        }).catch(() => setPlotsLoading(false));
+    }, [categoryId]);
+
+    // Populate edit data
     useEffect(() => {
         if (Object.keys(data).length) {
-            if (data.plot) setPlotPrice(data.plot.price || 0);
+            if (data.plot) {
+                setPlotPrice(data.plot.price || 0);
+                if (data.plot.category?.id) setCategoryId(data.plot.category.id);
+            }
             reset({
                 plotId: data.plot?.id || '',
                 tokenAmount: data.tokenAmount || '',
@@ -133,7 +157,6 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         setValue('plotId', plotId);
     };
 
-    // Compute installments reactively
     const installments = computeInstallments(
         plotPrice,
         n(watched.tokenAmount),
@@ -151,8 +174,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     const installmentTotal = installments.reduce((s, r) => s + r.amount, 0);
     const grandTotal = fixedTotal + installmentTotal;
 
-    const fmt = (val: number) =>
-        `${currencyCode} ${Math.round(val).toLocaleString()}`;
+    const fmt = (val: number) => `${currencyCode} ${Math.round(val).toLocaleString()}`;
 
     const onSubmit = (formData: any) => {
         const _data: any = {
@@ -165,7 +187,11 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
             onPossessionAmount: n(formData.onPossessionAmount),
             quarterlyAmount: n(formData.quarterlyAmount),
             tenure: n(formData.tenure),
-            installments: installments.map(({ month, amount }) => ({ month, amount: Math.round(amount) })),
+            installments: installments.map(({ month, label, amount }) => ({
+                month,
+                label,
+                amount: Math.round(amount),
+            })),
         };
         callback(_data);
     };
@@ -199,12 +225,35 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            {/* ── Plot selection ── */}
+            {/* ── Category & Plot selection ── */}
             <Card sx={{ mb: 3 }}>
                 <ProgressBar formLoader={loading || formLoader}>{null}</ProgressBar>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Typography variant="h6" sx={{ mb: 3 }}>Plot</Typography>
                     <Grid container spacing={3} alignItems="flex-end">
+
+                        {/* Category */}
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <FormControl variant="standard" fullWidth>
+                                <InputLabel>Category</InputLabel>
+                                <Select
+                                    value={categoryId}
+                                    label="Category"
+                                    onChange={(e) => {
+                                        setCategoryId(e.target.value);
+                                        setValue('plotId', '');
+                                        setPlotPrice(0);
+                                    }}
+                                >
+                                    <MenuItem value=""><em>Select category</em></MenuItem>
+                                    {categories.map((c) => (
+                                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        {/* Plot */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
                                 name="plotId"
@@ -216,12 +265,19 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                         <Select
                                             {...field}
                                             label="Plot"
+                                            disabled={!categoryId || plotsLoading}
                                             onChange={(e) => {
                                                 field.onChange(e.target.value);
                                                 handlePlotChange(e.target.value);
                                             }}
                                         >
-                                            <MenuItem value=""><em>Select plot</em></MenuItem>
+                                            <MenuItem value="">
+                                                <em>
+                                                    {plotsLoading ? 'Loading...'
+                                                        : !categoryId ? 'Select category first'
+                                                        : 'Select plot'}
+                                                </em>
+                                            </MenuItem>
                                             {plots.map((p) => (
                                                 <MenuItem key={p.id} value={p.id}>
                                                     {p.block?.name}-{p.plotNo}
@@ -233,6 +289,8 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                 )}
                             />
                         </Grid>
+
+                        {/* Plot price display */}
                         {plotPrice > 0 && (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                 <Typography variant="body2" color="text.secondary">Plot Price</Typography>
@@ -282,7 +340,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                         </Grid>
                     </Grid>
 
-                    {/* Summary row */}
+                    {/* Summary bar */}
                     {plotPrice > 0 && fixedTotal > 0 && (
                         <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
                             <Grid container spacing={2}>
@@ -340,7 +398,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                             key={row.month}
                                             sx={{ bgcolor: row.isQuarterly ? 'warning.50' : 'inherit' }}
                                         >
-                                            <TableCell>Month {row.month}</TableCell>
+                                            <TableCell sx={{ fontWeight: 500 }}>{row.label}</TableCell>
                                             <TableCell sx={{ fontWeight: row.isQuarterly ? 700 : 400 }}>
                                                 {fmt(row.amount)}
                                             </TableCell>
