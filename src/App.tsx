@@ -31,6 +31,9 @@ import EditCustomer from "./pages/customer/EditCustomer";
 import Token from "./pages/token/Token";
 import CreateTokenPage from "./pages/token/CreateToken";
 import EditTokenPage from "./pages/token/EditToken";
+import Booking from "./pages/booking/Booking";
+import CreateBookingPage from "./pages/booking/CreateBooking";
+import EditBookingPage from "./pages/booking/EditBooking";
 
 // Supporting Components
 import PermissionDenied from "./components/PermissionDenied";
@@ -80,6 +83,9 @@ function App() {
                         <Route path={ROUTES.TOKEN.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Token} permissionName={PERMISSIONS.TOKEN.LIST} />} />
                         <Route path={ROUTES.TOKEN.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateTokenPage} permissionName={PERMISSIONS.TOKEN.CREATE} />} />
                         <Route path={ROUTES.TOKEN.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditTokenPage} permissionName={PERMISSIONS.TOKEN.UPDATE} />} />
+                        <Route path={ROUTES.BOOKING.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Booking} permissionName={PERMISSIONS.BOOKING.LIST} />} />
+                        <Route path={ROUTES.BOOKING.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateBookingPage} permissionName={PERMISSIONS.BOOKING.CREATE} />} />
+                        <Route path={ROUTES.BOOKING.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditBookingPage} permissionName={PERMISSIONS.BOOKING.UPDATE} />} />
                     </Routes>
                 </Router>
             </ToastContext.Provider>

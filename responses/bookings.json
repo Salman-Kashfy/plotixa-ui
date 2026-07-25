@@ -1,0 +1,31 @@
+{
+    "status": true,
+    "message": "Data fetched successfully!",
+    "data": [
+        {
+            "id": "1",
+            "plot": { "id": "1", "plotNo": 1, "price": 2000000, "block": { "id": "1", "name": "A" }, "category": { "id": "1", "name": "Residential" } },
+            "tokenAmount": 100000,
+            "bookingAmount": 100000,
+            "allocationAmount": 100000,
+            "confirmationAmount": 100000,
+            "startOfWorkAmount": 100000,
+            "onPossessionAmount": 100000,
+            "quarterlyAmount": 200000,
+            "tenure": 6,
+            "installments": [
+                { "month": 1, "amount": 200000 },
+                { "month": 2, "amount": 200000 },
+                { "month": 3, "amount": 200000 },
+                { "month": 4, "amount": 400000 },
+                { "month": 5, "amount": 200000 },
+                { "month": 6, "amount": 200000 }
+            ],
+            "createdAt": "2024-01-01T00:00:00.000Z"
+        }
+    ],
+    "paging": {
+        "totalPages": 1,
+        "totalResultCount": 1
+    }
+}

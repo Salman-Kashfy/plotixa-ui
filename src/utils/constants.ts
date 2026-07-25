@@ -213,6 +213,7 @@ export const apiUrl = {
     plotCategories: '/plot-categories',
     customers: '/customers',
     tokens: '/tokens',
+    bookings: '/bookings',
 }
 
 export const ROUTES = {
@@ -338,6 +339,11 @@ export const ROUTES = {
         LIST: '/tokens',
         CREATE: '/token/create',
         EDIT: ((id = null) => '/token/' + (id || ':id') + '/edit'),
+    },
+    BOOKING: {
+        LIST: '/bookings',
+        CREATE: '/booking/create',
+        EDIT: ((id = null) => '/booking/' + (id || ':id') + '/edit'),
     },
     GYM_QR_SESSION: {
         LIST: '/attendance',
@@ -472,6 +478,12 @@ export const PERMISSIONS = {
         UPDATE: 'token:update',
         DELETE: 'token:delete',
     },
+    BOOKING: {
+        LIST: 'booking:view',
+        CREATE: 'booking:create',
+        UPDATE: 'booking:update',
+        DELETE: 'booking:delete',
+    },
     REPORT: {
         PT_COMMISSION: 'report:pt_commission',
     },
@@ -582,6 +594,15 @@ export enum PLOT_STATUS {
     TOKEN = 'TOKEN',
     SOLD = 'SOLD',
 }
+
+export const TENURE_OPTIONS = [
+    { label: '6 Months',  value: 6  },
+    { label: '1 Year',    value: 12 },
+    { label: '2 Years',   value: 24 },
+    { label: '3 Years',   value: 36 },
+    { label: '4 Years',   value: 48 },
+    { label: '5 Years',   value: 60 },
+];
 
 export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'info' | 'error'> = {
     [PLOT_STATUS.AVAILABLE]: 'success',

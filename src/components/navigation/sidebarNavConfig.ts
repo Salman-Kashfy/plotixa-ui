@@ -3,6 +3,7 @@ import TrendingDownOutlinedIcon from '@mui/icons-material/TrendingDownOutlined';
 import GridOnOutlinedIcon from '@mui/icons-material/GridOnOutlined';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import BookmarkOutlinedIcon from '@mui/icons-material/BookmarkOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import { ROUTES, PERMISSIONS } from '../../utils/constants';
 import type { SvgIconComponent } from '@mui/icons-material';
@@ -24,6 +25,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
     { key: 'plots', label: 'Plots', route: ROUTES.PLOT.LIST, permission: PERMISSIONS.PLOT.LIST, Icon: GridOnOutlinedIcon, bottomNav: true },
     { key: 'customers', label: 'Customers', route: ROUTES.CUSTOMER.LIST, permission: PERMISSIONS.CUSTOMER.LIST, Icon: BadgeOutlinedIcon, bottomNav: true },
     { key: 'tokens', label: 'Tokens', route: ROUTES.TOKEN.LIST, permission: PERMISSIONS.TOKEN.LIST, Icon: ConfirmationNumberOutlinedIcon, bottomNav: true },
+    { key: 'bookings', label: 'Bookings', route: ROUTES.BOOKING.LIST, permission: PERMISSIONS.BOOKING.LIST, Icon: BookmarkOutlinedIcon, bottomNav: true },
 ];
 
 export const bottomNavMenuItem = {
