@@ -185,18 +185,17 @@ export const constants = {
     DOC_SIDEBAR: 'DOC_SIDEBAR',
     APP_URL: import.meta.env.VITE_APP_URL,
     BASE_URL: import.meta.env.VITE_BASE_URL,
-    API_URL: import.meta.env.VITE_BASE_URL + '/api',
+    API_URL: import.meta.env.VITE_BASE_URL,
     GRAPHQL_SERVER: import.meta.env.VITE_BASE_URL + '/graphql',
-    STRIPE_PUBLIC_KEY: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
     FAKE_RESPONSE: import.meta.env.VITE_FAKE_RESPONSE === 'true',
     PROJECT_UUID: 'PROJECT_UUID',
 };
 
 export const apiUrl = {
-    adminLogin: '/login',
-    refreshToken: '/refresh-token',
-    logout: '/logout',
-    userPermissions: '/user-permissions',
+    adminLogin: '/auth/login',
+    refreshToken: '/auth/refresh-token',
+    logout: '/auth/logout',
+    userPermissions: '/auth/user-permissions',
     projects: '/projects',
     uploadImage: '/upload-image',
     deleteFile: '/delete-file',

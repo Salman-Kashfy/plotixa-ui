@@ -1,10 +1,13 @@
 import {useContext, useEffect, useState} from 'react'
 import {BreadcrumbContext} from '../../hooks/BreadcrumbContext';
+import {AdminContext} from '../../hooks/AdminContext';
 import PageTitle from "../../components/PageTitle";
 import {Box} from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import Diversity1Icon from '@mui/icons-material/Diversity1';
+import GridOnOutlinedIcon from '@mui/icons-material/GridOnOutlined';
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
+import LandscapeOutlinedIcon from '@mui/icons-material/LandscapeOutlined';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import {DashboardStats} from "../../services/dashboard.service";
 import {PickersShortcutsItem} from "@mui/x-date-pickers/PickersShortcuts";
 import {DateRange} from "@mui/x-date-pickers-pro/models";
@@ -15,11 +18,20 @@ import {SingleInputDateRangeField} from "@mui/x-date-pickers-pro/SingleInputDate
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import DashboardStat from './DashboardStat'
 import Stacking from './DailyStacking'
-import TrendingDownOutlinedIcon from "@mui/icons-material/TrendingDownOutlined";
-import AltRouteIcon from "@mui/icons-material/AltRoute";
+
+function formatCurrency(value: number, currencyCode: string): string {
+    if (!value) return `${currencyCode} 0`;
+    if (value >= 10_000_000) return `${currencyCode} ${(value / 10_000_000).toFixed(2).replace(/\.?0+$/, '')} Cr`;
+    if (value >= 100_000)    return `${currencyCode} ${(value / 100_000).toFixed(2).replace(/\.?0+$/, '')} Lac`;
+    return `${currencyCode} ${value.toLocaleString()}`;
+}
 
 function Dashboard() {
     const breadcrumbContext:any = useContext(BreadcrumbContext)
+    const adminContext:any = useContext(AdminContext)
+    const currencyCode = adminContext.projects?.find(
+        (p: any) => p.uuid === adminContext.projectUuid
+    )?.currencyCode || ''
     const [daterange, setDaterange] = useState<{start: Dayjs | null, end: Dayjs | null}>({
         start: dayjs().startOf('month'),
         end: dayjs().endOf('month')
@@ -30,10 +42,10 @@ function Dashboard() {
     * */
     const [statsLoader, setStatsLoader] = useState(true);
     const [dashboardStats, setDashboardStats] = useState({
-        activeMemberships: 0,
-        totalRevenue: 0,
-        totalExpense: 0,
-        totalPTCommission: 0
+        totalPlots: 0,
+        soldPlots: 0,
+        remainingPlots: 0,
+        totalPlotValue: 0,
     })
 
     const shortcutsItems: PickersShortcutsItem<DateRange<Dayjs>>[] = [
@@ -155,16 +167,16 @@ function Dashboard() {
             <PageTitle title="Dashboard" input={filters} />
             <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 4 } }}>
                 <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
-                    <DashboardStat value={dashboardStats.totalRevenue} title="Total Revenue" icon={<TrendingUpIcon sx={{ color: '#fff' }} />} iconBg="primary.main" loading={statsLoader} />
+                    <DashboardStat value={dashboardStats.totalPlots} title="Total Plots" icon={<GridOnOutlinedIcon sx={{ color: '#fff' }} />} iconBg="primary.main" loading={statsLoader} />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
-                    <DashboardStat value={dashboardStats.totalExpense} title="Total Expense" icon={<TrendingDownOutlinedIcon sx={{ color: '#fff' }} />} iconBg="triadic.main" loading={statsLoader} />
+                    <DashboardStat value={dashboardStats.soldPlots} title="Sold Plots" icon={<SellOutlinedIcon sx={{ color: '#fff' }} />} iconBg="error.main" loading={statsLoader} />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
-                    <DashboardStat value={dashboardStats.totalPTCommission} title="Total PT Commission" icon={<AltRouteIcon sx={{ color: '#fff' }} />} iconBg="success.main" loading={statsLoader} />
+                    <DashboardStat value={dashboardStats.remainingPlots} title="Remaining Plots" icon={<LandscapeOutlinedIcon sx={{ color: '#fff' }} />} iconBg="success.main" loading={statsLoader} />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, xl: 3 }}>
-                    <DashboardStat value={dashboardStats.activeMemberships} title="Active Memberships" icon={<Diversity1Icon sx={{ color: '#fff' }} />} iconBg="warning.main" loading={statsLoader} />
+                    <DashboardStat value={formatCurrency(dashboardStats.totalPlotValue, currencyCode)} title="Total Plot Value" icon={<AccountBalanceWalletOutlinedIcon sx={{ color: '#fff' }} />} iconBg="warning.main" loading={statsLoader} />
                 </Grid>
             </Grid>
             <Grid container spacing={2}>

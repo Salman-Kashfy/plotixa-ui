@@ -35,9 +35,9 @@ function Signin() {
         setLoading(true)
         await AdminLogin(data).then((data) => {
             if (data.status) {
-                adminContext.setAdmin(data.admin)
+                adminContext.setAdmin(data.user)
                 adminContext.setToken(data.token)
-                const developerUuid = data.admin?.developerUuid
+                const developerUuid = data.user?.developerUuid
                 Promise.all([
                     UserPermissions(),
                     GetProjects(developerUuid),
@@ -46,13 +46,13 @@ function Signin() {
                     adminContext.setPermissions(permissionsResponse.data)
                     if (projectsResponse?.status && projectsResponse.data?.length) {
                         adminContext.setProjects(projectsResponse.data)
-                        const defaultProjectUuid = data.admin?.defaultProjectUuid
+                        const defaultProjectUuid = data.user?.defaultProjectUuid
                         const projectUuid = defaultProjectUuid || projectsResponse.data[0].uuid
                         localStorage.setItem(constants.PROJECT_UUID, projectUuid)
                         adminContext.setProjectUuid(projectUuid)
                     }
                     if (permissionsResponse.status) {
-                        if(permissionsResponse.data.admin?.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED){
+                        if(permissionsResponse.data.user?.subscriptionStatus === SUBSCRIPTION_STATUS.EXPIRED){
                             navigate(ROUTES.SUBSCRIPTION.BILLING)
                         }else{
                             navigate(ROUTES.DASHBOARD)

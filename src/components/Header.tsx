@@ -19,15 +19,13 @@ import {
     InputLabel,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { NavLink } from 'react-router-dom';
 import { useContext, useState } from 'react';
 import PowerSettingsNewOutlinedIcon from '@mui/icons-material/PowerSettingsNewOutlined';
 import { styled } from '@mui/material/styles';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import { ROUTES, constants } from '../utils/constants';
+import { constants } from '../utils/constants';
 import { DRAWER_WIDTH } from './Sidebar';
-import crmLogo from '../assets/cloudfitnest.png';
 
 interface AppBarProps {
     open?: boolean;
@@ -115,9 +113,8 @@ function Header({
         <AppBar position="fixed" open={open} isMobile={isMobile} elevation={0} variant="outlined">
             <Toolbar>
                 {isMobile ? (
-                    <Box component={NavLink} to={ROUTES.DASHBOARD} sx={{ display: 'flex', alignItems: 'center', mr: 1, textDecoration: 'none' }}>
-                        <Box component="img" src={crmLogo} alt="CloudFitnest" sx={{ height: 28, filter: isDarkMode ? 'invert(1)' : 'none' }}/>
-                    </Box>
+                    // Logo removed
+                    null
                 ) : (
                     <IconButton aria-label="Toggle sidebar" onClick={handleDrawerOpen} edge="start">
                         <MenuIcon />

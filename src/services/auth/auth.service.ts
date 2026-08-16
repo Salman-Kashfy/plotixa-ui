@@ -15,7 +15,7 @@ export const AdminLogin = async (data:AdminLoginInterface) => {
     const response = await POST(apiUrl.adminLogin, data);
     if(response.status){
         SetToken(response.token);
-        SetAuthUser(response.admin);
+        SetAuthUser(response.user);
     }
     return response;
 }

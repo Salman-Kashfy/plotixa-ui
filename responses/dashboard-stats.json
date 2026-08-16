@@ -1,0 +1,10 @@
+{
+    "status": true,
+    "message": "Data fetched successfully!",
+    "data": {
+        "totalPlots": 120,
+        "soldPlots": 34,
+        "remainingPlots": 86,
+        "totalPlotValue": 240000000
+    }
+}

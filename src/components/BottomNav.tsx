@@ -16,7 +16,8 @@ function BottomNav({ onMenuOpen }: BottomNavProps) {
     const theme = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
-    const items = getBottomNavItems(hasPermission);
+    const BOTTOM_NAV_KEYS = ['dashboard', 'customers', 'bookings'];
+    const items = getBottomNavItems(hasPermission).filter((item) => BOTTOM_NAV_KEYS.includes(item.key));
 
     const activeValue = items.find(
         (item) => location.pathname === item.route || location.pathname.startsWith(`${item.route}/`)

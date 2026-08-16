@@ -7,8 +7,6 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Tooltip from '@mui/material/Tooltip';
 import { styled, useTheme } from '@mui/material/styles';
-import crmLogo from '../assets/cloudfitnest.png';
-import crmIcon from '../assets/cloudfitnest-icon.png';
 import { hasPermission } from '../utils/permissions';
 import { getVisibleNavItems, sidebarNavItems } from './navigation/sidebarNavConfig';
 
@@ -35,11 +33,7 @@ function SidebarNavContent({ expanded = true, onNavigate }: SidebarNavContentPro
     return (
         <>
             <DrawerHeader sx={{ justifyContent: 'center' }}>
-                <img
-                    src={expanded ? crmLogo : crmIcon}
-                    alt="CloudFitnest"
-                    style={{ height: '25px', filter: theme.palette.mode === 'dark' ? 'invert(1)' : '' }}
-                />
+                {/* Logo removed */}
             </DrawerHeader>
             <Divider />
             <List sx={{ pb: 2 }}>
