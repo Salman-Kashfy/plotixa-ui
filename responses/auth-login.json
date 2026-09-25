@@ -1,0 +1,15 @@
+{
+    "status": true,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwia2V5Ijoib016UlUySjUiLCJpYXQiOjE3OTAwMjM1NTYsImV4cCI6MTc5MDEwOTk1Nn0.HkQHkRofo2db5pErfl4ORdk8iDAXLCCT3CyjlVxWhvs",
+    "user": {
+        "uuid": "9c9932f6-dd42-436e-9c22-af67897ba043",
+        "firstName": "Plotixa",
+        "lastName": "",
+        "developerUuid": "5ae293aa-75dd-4afa-a431-8a9d0a745654",
+        "defaultProjectUuid": "ef7fa172-5139-4abd-8012-5245c4cd949a",
+        "role": {
+            "uuid": "d0faca9e-af1f-4d49-9759-2754ff5651fb",
+            "name": "SUPER_ADMIN"
+        }
+    }
+}

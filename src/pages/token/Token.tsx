@@ -231,7 +231,7 @@ function Token() {
                                         <NoRowsFound loading={loading} colSpan={columns.length} rowCount={rows.length} />
                                     </TableBody>
                                     <TableFooter>
-                                        {loading && !rows.length ? (
+                                        {loading ? (
                                             <TableSpinner loading colSpan={columns.length} rowCount={rows.length} />
                                         ) : null}
                                     </TableFooter>

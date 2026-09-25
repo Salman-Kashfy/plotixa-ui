@@ -79,7 +79,8 @@ function Header({
     const navigate = useNavigate();
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
     const projects = adminContext.projects || [];
-    const [selectedProjectUuid, setSelectedProjectUuid] = useState<string>(adminContext.projectUuid || '');
+    console.log({adminContext})
+    const [selectedProjectUuid, setSelectedProjectUuid] = useState<string>(adminContext.projectUuid || adminContext.admin.defaultProjectUuid || '');
 
     const handleProjectChange = (uuid: string) => {
         setSelectedProjectUuid(uuid);
