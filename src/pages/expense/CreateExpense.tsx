@@ -56,7 +56,7 @@ function CreateExpense() {
 
     const fetchTypes = () => {
         setTypesLoading(true);
-        GetExpenseTypes().then((data) => {
+        GetExpenseTypes({ projectUuid: adminContext.projectUuid }).then((data) => {
             setExpenseTypes(data);
             setTypesLoading(false);
         }).catch(() => setTypesLoading(false));

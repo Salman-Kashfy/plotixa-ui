@@ -11,7 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { GetExpenseTypes, CreateExpenseType, UpdateExpenseType, DeleteExpenseType } from '../../services/expense.service';
-import { PERMISSIONS } from '../../utils/constants';
+import { constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 
 type ExpenseType = { id: string; name: string };
@@ -37,7 +37,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
 
     const fetchTypes = () => {
         setLoading(true);
-        GetExpenseTypes().then((data) => {
+        GetExpenseTypes({ projectUuid: localStorage.getItem(constants.PROJECT_UUID) || '' }).then((data) => {
             setTypes(data);
             setLoading(false);
         }).catch(() => setLoading(false));

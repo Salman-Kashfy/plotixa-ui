@@ -58,7 +58,7 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     const fetchTypes = () => {
         setTypesLoading(true);
-        GetExpenseTypes().then((types) => {
+        GetExpenseTypes({ projectUuid: adminContext.projectUuid }).then((types) => {
             setExpenseTypes(types);
             setTypesLoading(false);
         }).catch(() => setTypesLoading(false));

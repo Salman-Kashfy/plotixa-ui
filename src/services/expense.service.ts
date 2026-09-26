@@ -3,7 +3,7 @@ import { GET, POST } from './api.service.wrapper';
 
 // ─── Expense Types ────────────────────────────────────────────────────────────
 
-export const GetExpenseTypes = async (params = {}) => {
+export const GetExpenseTypes = async (params: { projectUuid: string; [key: string]: any }) => {
     const response: any = await GET(apiUrl.expenseTypes, params);
     return response?.status ? response.data : [];
 };
