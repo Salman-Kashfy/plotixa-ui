@@ -437,32 +437,27 @@ export const PERMISSIONS = {
     },
     EXPENSE: {
         LIST: 'expense:view',
-        CREATE: 'expense:create',
-        UPDATE: 'expense:update',
+        UPSERT: 'expense:upsert',
         DELETE: 'expense:delete',
     },
     EXPENSE_TYPE: {
         LIST: 'expense_type:view',
-        CREATE: 'expense_type:create',
-        UPDATE: 'expense_type:update',
+        UPSERT: 'expense_type:upsert',
         DELETE: 'expense_type:delete',
     },
     PLOT: {
         LIST: 'plot:view',
-        CREATE: 'plot:create',
-        UPDATE: 'plot:update',
+        UPSERT: 'plot:upsert',
         DELETE: 'plot:delete',
     },
     PLOT_BLOCK: {
         LIST: 'plot_block:view',
-        CREATE: 'plot_block:create',
-        UPDATE: 'plot_block:update',
+        UPSERT: 'plot_block:upsert',
         DELETE: 'plot_block:delete',
     },
     PLOT_CATEGORY: {
         LIST: 'plot_category:view',
-        CREATE: 'plot_category:create',
-        UPDATE: 'plot_category:update',
+        UPSERT: 'plot_category:upsert',
         DELETE: 'plot_category:delete',
     },
     CUSTOMER: {

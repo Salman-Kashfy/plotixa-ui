@@ -43,8 +43,7 @@ function CreateExpense() {
     const [typeDialogOpen, setTypeDialogOpen] = useState(false);
     const [expanded, setExpanded] = useState<string | false>('');
 
-    const canManageTypes = hasPermission(PERMISSIONS.EXPENSE_TYPE.CREATE) ||
-        hasPermission(PERMISSIONS.EXPENSE_TYPE.UPDATE) ||
+    const canManageTypes = hasPermission(PERMISSIONS.EXPENSE_TYPE.UPSERT) ||
         hasPermission(PERMISSIONS.EXPENSE_TYPE.DELETE);
 
     const { control, handleSubmit, watch, formState: { errors } } = useForm({

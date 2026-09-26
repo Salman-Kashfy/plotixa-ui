@@ -40,7 +40,7 @@ function Expense() {
     const btn = {
         to: ROUTES.EXPENSE.CREATE,
         label: 'Add Expense',
-        show: hasPermission(PERMISSIONS.EXPENSE.CREATE),
+        show: hasPermission(PERMISSIONS.EXPENSE.UPSERT),
     };
 
     const columns = [
@@ -84,7 +84,7 @@ function Expense() {
                 amount: e.amount?.toLocaleString(),
                 actions: (
                     <Box sx={{ display: 'flex' }}>
-                        {hasPermission(PERMISSIONS.EXPENSE.UPDATE) && (
+                        {hasPermission(PERMISSIONS.EXPENSE.UPSERT) && (
                             <IconButton component={NavLink} to={ROUTES.EXPENSE.EDIT(e.id)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>

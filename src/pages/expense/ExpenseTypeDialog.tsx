@@ -32,8 +32,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
     const [savingId, setSavingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    const canCreate = hasPermission(PERMISSIONS.EXPENSE_TYPE.CREATE);
-    const canUpdate = hasPermission(PERMISSIONS.EXPENSE_TYPE.UPDATE);
+    const canUpsert = hasPermission(PERMISSIONS.EXPENSE_TYPE.UPSERT);
     const canDelete = hasPermission(PERMISSIONS.EXPENSE_TYPE.DELETE);
 
     const fetchTypes = () => {
@@ -121,7 +120,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                                             </Box>
                                         ) : (
                                             <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                {canUpdate && (
+                                                {canUpsert && (
                                                     <Tooltip title="Edit">
                                                         <IconButton size="small" onClick={() => { setEditingId(type.id); setEditingName(type.name); }}>
                                                             <EditIcon fontSize="small" />
@@ -183,7 +182,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                 )}
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                {canCreate && !adding && (
+                {canUpsert && !adding && (
                     <Button startIcon={<AddIcon />} size="small" onClick={() => setAdding(true)}>
                         Add Type
                     </Button>

@@ -38,7 +38,7 @@ function Plot() {
     const btn = {
         to: ROUTES.PLOT.CREATE,
         label: 'Add Plot',
-        show: hasPermission(PERMISSIONS.PLOT.CREATE),
+        show: hasPermission(PERMISSIONS.PLOT.UPSERT),
     };
 
     const columns = [

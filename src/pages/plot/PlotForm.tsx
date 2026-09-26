@@ -42,12 +42,10 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
     const [blockDialogOpen, setBlockDialogOpen] = useState(false);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
-    const canManageBlocks = hasPermission(PERMISSIONS.PLOT_BLOCK.CREATE) ||
-        hasPermission(PERMISSIONS.PLOT_BLOCK.UPDATE) ||
+    const canManageBlocks = hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT) ||
         hasPermission(PERMISSIONS.PLOT_BLOCK.DELETE);
 
-    const canManageCategories = hasPermission(PERMISSIONS.PLOT_CATEGORY.CREATE) ||
-        hasPermission(PERMISSIONS.PLOT_CATEGORY.UPDATE) ||
+    const canManageCategories = hasPermission(PERMISSIONS.PLOT_CATEGORY.UPSERT) ||
         hasPermission(PERMISSIONS.PLOT_CATEGORY.DELETE);
 
     const defaultValues = {
