@@ -25,7 +25,7 @@ import PageTitle from '../../components/PageTitle';
 import ProgressBar from '../../components/ProgressBar';
 import ExpenseTypeDialog from './ExpenseTypeDialog';
 
-type ExpenseType = { id: string; name: string };
+type ExpenseType = { uuid: string; name: string };
 
 const MAX_EXPENSES = 12;
 
@@ -128,7 +128,7 @@ function CreateExpense() {
                         </Box>
 
                         {fields.map((field, index) => {
-                            const typeName = expenseTypes.find((t) => t.id === expenses[index]?.expenseTypeId)?.name || '';
+                            const typeName = expenseTypes.find((t) => t.uuid === expenses[index]?.expenseTypeId)?.name || '';
                             const amount = expenses[index]?.amount;
                             const hasError = errors?.expenses?.[index]?.expenseTypeId || errors?.expenses?.[index]?.amount;
 
@@ -194,7 +194,7 @@ function CreateExpense() {
                                                             >
                                                                 <MenuItem value=""><em>Select type</em></MenuItem>
                                                                 {expenseTypes.map((type) => (
-                                                                    <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
+                                                                    <MenuItem key={type.uuid} value={type.uuid}>{type.name}</MenuItem>
                                                                 ))}
                                                             </Select>
                                                             {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}

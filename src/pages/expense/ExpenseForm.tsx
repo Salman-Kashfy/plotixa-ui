@@ -17,7 +17,7 @@ import ExpenseTypeDialog from './ExpenseTypeDialog';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 
-type ExpenseType = { id: string; name: string };
+type ExpenseType = { uuid: string; name: string };
 
 type Props = {
     data?: any;
@@ -123,7 +123,7 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                         >
                                             <MenuItem value=""><em>Select type</em></MenuItem>
                                             {expenseTypes.map((type) => (
-                                                <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
+                                                <MenuItem key={type.uuid} value={type.uuid}>{type.name}</MenuItem>
                                             ))}
                                         </Select>
                                         {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}

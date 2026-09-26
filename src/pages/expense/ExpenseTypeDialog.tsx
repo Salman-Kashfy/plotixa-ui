@@ -14,7 +14,7 @@ import { GetExpenseTypes, CreateExpenseType, UpdateExpenseType, DeleteExpenseTyp
 import { constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 
-type ExpenseType = { id: string; name: string };
+type ExpenseType = { uuid: string; name: string };
 
 type Props = {
     open: boolean;
@@ -60,10 +60,10 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
         }).catch(() => setSavingId(null));
     };
 
-    const handleUpdate = (id: string) => {
+    const handleUpdate = (uuid: string) => {
         if (!editingName.trim()) return;
-        setSavingId(id);
-        UpdateExpenseType(id, { name: editingName.trim() }).then((res) => {
+        setSavingId(uuid);
+        UpdateExpenseType(uuid, { name: editingName.trim() }).then((res) => {
             setSavingId(null);
             if (res.status) {
                 setEditingId(null);
@@ -72,9 +72,9 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
         }).catch(() => setSavingId(null));
     };
 
-    const handleDelete = (id: string) => {
-        setDeletingId(id);
-        DeleteExpenseType(id).then((res) => {
+    const handleDelete = (uuid: string) => {
+        setDeletingId(uuid);
+        DeleteExpenseType(uuid).then((res) => {
             setDeletingId(null);
             if (res.status) fetchTypes();
         }).catch(() => setDeletingId(null));
@@ -104,15 +104,15 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                             </Typography>
                         )}
                         {types.map((type, index) => (
-                            <Box key={type.id}>
+                            <Box key={type.uuid}>
                                 {index > 0 && <Divider />}
                                 <ListItem
                                     sx={{ py: 0.5 }}
                                     secondaryAction={
-                                        editingId === type.id ? (
+                                        editingId === type.uuid ? (
                                             <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                <IconButton size="small" onClick={() => handleUpdate(type.id)} disabled={savingId === type.id}>
-                                                    {savingId === type.id ? <CircularProgress size={16} /> : <CheckIcon fontSize="small" color="success" />}
+                                                <IconButton size="small" onClick={() => handleUpdate(type.uuid)} disabled={savingId === type.uuid}>
+                                                    {savingId === type.uuid ? <CircularProgress size={16} /> : <CheckIcon fontSize="small" color="success" />}
                                                 </IconButton>
                                                 <IconButton size="small" onClick={() => setEditingId(null)}>
                                                     <CloseIcon fontSize="small" />
@@ -122,15 +122,15 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                                             <Box sx={{ display: 'flex', gap: 0.5 }}>
                                                 {canUpsert && (
                                                     <Tooltip title="Edit">
-                                                        <IconButton size="small" onClick={() => { setEditingId(type.id); setEditingName(type.name); }}>
+                                                        <IconButton size="small" onClick={() => { setEditingId(type.uuid); setEditingName(type.name); }}>
                                                             <EditIcon fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
                                                 {canDelete && (
                                                     <Tooltip title="Delete">
-                                                        <IconButton size="small" onClick={() => handleDelete(type.id)} disabled={deletingId === type.id} color="error">
-                                                            {deletingId === type.id ? <CircularProgress size={16} /> : <DeleteIcon fontSize="small" />}
+                                                        <IconButton size="small" onClick={() => handleDelete(type.uuid)} disabled={deletingId === type.uuid} color="error">
+                                                            {deletingId === type.uuid ? <CircularProgress size={16} /> : <DeleteIcon fontSize="small" />}
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
@@ -138,12 +138,12 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                                         )
                                     }
                                 >
-                                    {editingId === type.id ? (
+                                    {editingId === type.uuid ? (
                                         <TextField
                                             variant="standard"
                                             value={editingName}
                                             onChange={(e) => setEditingName(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleUpdate(type.id)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleUpdate(type.uuid)}
                                             autoFocus
                                             size="small"
                                             sx={{ pr: 10 }}
