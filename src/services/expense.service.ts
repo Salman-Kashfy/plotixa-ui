@@ -1,4 +1,4 @@
-import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
+import { apiUrl, constants, emptyMutationResponse } from '../utils/constants';
 import { GET, POST, DELETE } from './api.service.wrapper';
 
 // ─── Expense Types ────────────────────────────────────────────────────────────
@@ -21,9 +21,9 @@ export const DeleteExpenseType = async (uuid: string, projectUuid: string) => {
 
 // ─── Expenses ─────────────────────────────────────────────────────────────────
 
-export const GetExpenses = async ({ page = 1, limit = constants.PER_PAGE }, params = {}) => {
+export const GetExpenses = async ({ page = 1, limit = constants.PER_PAGE }, params: { projectUuid: string; [key: string]: any }) => {
     const response: any = await GET(apiUrl.expenses, { page, limit, ...params });
-    return response?.status ? response : emptyListResponse;
+    return response?.status ? response.data : { list: [], pagination: { page: 1, perPage: limit, total: 0, totalPages: 0 } };
 };
 
 export const GetExpense = async (id: string) => {
