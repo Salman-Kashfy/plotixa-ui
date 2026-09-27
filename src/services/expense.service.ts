@@ -31,13 +31,8 @@ export const GetExpense = async (id: string) => {
     return response?.status ? response.data : {};
 };
 
-export const CreateExpense = async (data: { expenseTypeId: string; amount: number }[]) => {
+export const UpsertExpense = async (data: { expenseTypeUuid: string; projectUuid: string; amount: number; uuid?: string }) => {
     const response: any = await POST(apiUrl.expenses, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const UpdateExpense = async (id: string, data: { expenseTypeId: string; amount: number }) => {
-    const response: any = await POST(`${apiUrl.expenses}/${id}`, data as any);
     return response || emptyMutationResponse;
 };
 

@@ -42,7 +42,7 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         hasPermission(PERMISSIONS.EXPENSE_TYPE.DELETE);
 
     const defaultValues = {
-        id: '',
+        uuid: '',
         expenseTypeId: '',
         amount: '',
     };
@@ -50,8 +50,8 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     const { control, handleSubmit, reset } = useForm({
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            id: data.id || '',
-            expenseTypeId: data.expenseType?.id || '',
+            uuid: data.uuid || '',
+            expenseTypeId: data.expenseType?.uuid || '',
             amount: data.amount || '',
         },
     });
@@ -71,17 +71,21 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     useEffect(() => {
         if (Object.keys(data).length) {
             reset({
-                id: data.id || '',
-                expenseTypeId: data.expenseType?.id || '',
+                uuid: data.uuid || '',
+                expenseTypeId: data.expenseType?.uuid || '',
                 amount: data.amount || '',
             });
         }
     }, [data, reset]);
 
     const onSubmit = (formData: any) => {
-        const _data: any = { expenseTypeId: formData.expenseTypeId, amount: Number(formData.amount) };
-        if (formData.id) _data.id = formData.id;
-        if (!_data.expenseTypeId) {
+        const _data: any = {
+            expenseTypeUuid: formData.expenseTypeId,
+            projectUuid: adminContext.projectUuid,
+            amount: Number(formData.amount),
+        };
+        if (formData.uuid) _data.uuid = formData.uuid;
+        if (!_data.expenseTypeUuid) {
             toastContext.setToastSeverity('error');
             toastContext.setToastMessage('Expense type is required.');
             toastContext.setToast(true);

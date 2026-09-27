@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { ROUTES } from '../../utils/constants';
-import { GetExpense, UpdateExpense } from '../../services/expense.service';
+import { GetExpense, UpsertExpense } from '../../services/expense.service';
 import PageTitle from '../../components/PageTitle';
 import ExpenseForm from './ExpenseForm';
 
@@ -18,7 +18,7 @@ function EditExpense() {
 
     const onSubmit = (data: any) => {
         setLoading(true);
-        UpdateExpense(id!, data).then((response) => {
+        UpsertExpense(data).then((response) => {
             if (response.status) {
                 toastContext.setToastSeverity('success');
                 toastContext.setToastMessage('Expense updated successfully.');
@@ -26,7 +26,7 @@ function EditExpense() {
                 navigate(ROUTES.EXPENSE.LIST);
             } else {
                 toastContext.setToastSeverity('error');
-                toastContext.setToastMessage(response.errorMessage || 'Something went wrong.');
+                toastContext.setToastMessage(response.message || 'Something went wrong.');
                 toastContext.setToast(true);
             }
             setLoading(false);

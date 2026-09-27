@@ -20,7 +20,7 @@ import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetExpenseTypes, CreateExpense as _CreateExpense } from '../../services/expense.service';
+import { GetExpenseTypes, UpsertExpense } from '../../services/expense.service';
 import PageTitle from '../../components/PageTitle';
 import ProgressBar from '../../components/ProgressBar';
 import ExpenseTypeDialog from './ExpenseTypeDialog';
@@ -90,19 +90,20 @@ function CreateExpense() {
             return;
         }
         setLoading(true);
-        const payload = data.expenses.map((e: any) => ({
-            expenseTypeId: e.expenseTypeId,
+        Promise.all(data.expenses.map((e: any) => UpsertExpense({
+            expenseTypeUuid: e.expenseTypeId,
+            projectUuid: adminContext.projectUuid,
             amount: Number(e.amount),
-        }));
-        _CreateExpense(payload).then((response) => {
-            if (response.status) {
+        }))).then((responses) => {
+            const failed = responses.find((response: any) => !response.status);
+            if (!failed) {
                 toastContext.setToastSeverity('success');
                 toastContext.setToastMessage('Expenses created successfully.');
                 toastContext.setToast(true);
                 navigate(ROUTES.EXPENSE.LIST);
             } else {
                 toastContext.setToastSeverity('error');
-                toastContext.setToastMessage(response.errorMessage || 'Something went wrong.');
+                toastContext.setToastMessage(failed.message || 'Something went wrong.');
                 toastContext.setToast(true);
             }
             setLoading(false);
