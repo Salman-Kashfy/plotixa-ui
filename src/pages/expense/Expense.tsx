@@ -26,6 +26,7 @@ import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
 import ListingCard from '../../components/ListingCard';
+import AppDialog from '../../components/AppDialog';
 
 function Expense() {
     const theme = useTheme();
@@ -38,6 +39,8 @@ function Expense() {
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<DateRange<Dayjs>>([null, null]);
+    const [deleteTarget, setDeleteTarget] = useState<{ uuid: string; expenseType: string } | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const btn = {
         to: ROUTES.EXPENSE.CREATE,
@@ -61,14 +64,21 @@ function Expense() {
     };
 
     const handleDelete = (uuid: string) => {
-        DeleteExpense(uuid).then((res) => {
+        setDeleting(true);
+        DeleteExpense(uuid, adminContext.projectUuid).then((res) => {
+            setDeleting(false);
             if (res.status) {
+                setDeleteTarget(null);
                 toastContext.setToastSeverity('success');
                 toastContext.setToastMessage('Expense deleted.');
                 toastContext.setToast(true);
                 fetchRows();
+            } else {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage(res.message || 'Something went wrong.');
+                toastContext.setToast(true);
             }
-        });
+        }).catch(() => setDeleting(false));
     };
 
     const fetchRows = () => {
@@ -92,7 +102,7 @@ function Expense() {
                             </IconButton>
                         )}
                         {hasPermission(PERMISSIONS.EXPENSE.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.uuid)}>
+                            <IconButton color="error" size="small" onClick={() => setDeleteTarget({ uuid: e.uuid, expenseType: e.expenseType?.name || 'this expense' })}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         )}
@@ -212,6 +222,16 @@ function Expense() {
                     </Box>
                 </CardContent>
             </Card>
+
+            <AppDialog
+                open={!!deleteTarget}
+                handleDialogClose={() => setDeleteTarget(null)}
+                title="Delete Expense"
+                body={`Are you sure you want to delete "${deleteTarget?.expenseType}"?`}
+                dialogBtnLoading={deleting}
+                dialogBtnLabel="Delete"
+                onSubmit={() => deleteTarget && handleDelete(deleteTarget.uuid)}
+            />
         </>
     );
 }

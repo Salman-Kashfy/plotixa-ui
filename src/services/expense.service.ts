@@ -36,7 +36,7 @@ export const UpsertExpense = async (data: { expenseTypeUuid: string; projectUuid
     return response || emptyMutationResponse;
 };
 
-export const DeleteExpense = async (id: string) => {
-    const response: any = await POST(`${apiUrl.expenses}/${id}/delete`);
+export const DeleteExpense = async (uuid: string, projectUuid: string) => {
+    const response: any = await DELETE(`${apiUrl.expenses}/${uuid}`, { projectUuid });
     return response || emptyMutationResponse;
 };
