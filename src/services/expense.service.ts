@@ -1,5 +1,5 @@
 import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
-import { GET, POST } from './api.service.wrapper';
+import { GET, POST, DELETE } from './api.service.wrapper';
 
 // ─── Expense Types ────────────────────────────────────────────────────────────
 
@@ -14,8 +14,8 @@ export const UpsertExpenseType = async (data: { name: string; projectUuid: strin
     return response || emptyMutationResponse;
 };
 
-export const DeleteExpenseType = async (id: string) => {
-    const response: any = await POST(`${apiUrl.expenseTypes}/${id}/delete`);
+export const DeleteExpenseType = async (uuid: string, projectUuid: string) => {
+    const response: any = await DELETE(`${apiUrl.expenseTypes}/${uuid}`, { projectUuid });
     return response || emptyMutationResponse;
 };
 

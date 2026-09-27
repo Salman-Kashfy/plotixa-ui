@@ -93,9 +93,15 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
 
     const handleDelete = (uuid: string) => {
         setDeletingId(uuid);
-        DeleteExpenseType(uuid).then((res) => {
+        DeleteExpenseType(uuid, localStorage.getItem(constants.PROJECT_UUID) || '').then((res) => {
             setDeletingId(null);
-            if (res.status) fetchTypes();
+            if (res.status) {
+                fetchTypes();
+            } else {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage(res.message || 'Something went wrong.');
+                toastContext.setToast(true);
+            }
         }).catch(() => setDeletingId(null));
     };
 

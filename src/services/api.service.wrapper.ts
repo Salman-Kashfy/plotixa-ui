@@ -107,4 +107,34 @@ export const GET = async (url, params = {}, config = {}) => {
     }
 };
 
+export const DELETE = async (url, params = {}, config = {}) => {
+    if (constants.FAKE_RESPONSE) return getFakeResponse(url);
+    try {
+        const res = await api.delete(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
+        return res?.data;
+    } catch (e) {
+        if (e?.response.status === 401) {
+            try {
+                const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
+                if (refreshRes?.data.status) {
+                    SetToken(refreshRes?.data.data.token);
+                    const res = await api.delete(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
+                    return res?.data;
+                }
+            } catch (e) {
+                if(e?.response?.status === 401){
+                    await EmptyLocalStorage()
+                    window.location.href = constants.APP_URL
+                }else{
+                    console.log(e);
+                }
+            }
+        }
+        if (e?.response.status === 409){
+            return e.response.data
+        }
+    }
+};
+
+
 
