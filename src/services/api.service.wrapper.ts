@@ -50,7 +50,7 @@ export const POST = async (url, data = null, config = {}) => {
                 try {
                     const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
                     if (refreshRes?.data.status) {
-                        SetToken(refreshRes?.data.token);
+                        SetToken(refreshRes?.data.data.token);
                         const retryRes = await api.post(url, data, { ...config, withCredentials: true } as AxiosRequestConfig);
                         return retryRes?.data;
                     }
@@ -91,7 +91,7 @@ export const GET = async (url, params = {}, config = {}) => {
             try {
                 const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
                 if (refreshRes?.data.status) {
-                    SetToken(refreshRes?.data.token);
+                    SetToken(refreshRes?.data.data.token);
                     const res = await api.get(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
                     return res?.data;
                 }
