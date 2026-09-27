@@ -34,6 +34,9 @@ function Expense() {
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
+    const currencyCode = adminContext.projects?.find(
+        (p: any) => p.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const [page, setPage] = useState(0);
     const [paging, setPaging] = useState({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
@@ -93,7 +96,7 @@ function Expense() {
             const nextRows = list.map((e: any) => ({
                 id: e.uuid,
                 expenseType: e.expenseType?.name || '—',
-                amount: Number(e.amount).toLocaleString(),
+                amount: `${currencyCode ? `${currencyCode} ` : ''}${Number(e.amount).toLocaleString()}`,
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.EXPENSE.UPSERT) && (
