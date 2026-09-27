@@ -14,6 +14,7 @@ import { GetExpenseTypes, UpsertExpenseType, DeleteExpenseType } from '../../ser
 import { constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { ToastContext } from '../../hooks/ToastContext';
+import AppDialog from '../../components/AppDialog';
 
 type ExpenseType = { uuid: string; name: string };
 
@@ -33,6 +34,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
     const [editingName, setEditingName] = useState('');
     const [savingId, setSavingId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<ExpenseType | null>(null);
 
     const canUpsert = hasPermission(PERMISSIONS.EXPENSE_TYPE.UPSERT);
     const canDelete = hasPermission(PERMISSIONS.EXPENSE_TYPE.DELETE);
@@ -91,10 +93,13 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
         }).catch(() => setSavingId(null));
     };
 
-    const handleDelete = (uuid: string) => {
+    const confirmDelete = () => {
+        if (!deleteTarget) return;
+        const uuid = deleteTarget.uuid;
         setDeletingId(uuid);
         DeleteExpenseType(uuid, localStorage.getItem(constants.PROJECT_UUID) || '').then((res) => {
             setDeletingId(null);
+            setDeleteTarget(null);
             if (res.status) {
                 fetchTypes();
             } else {
@@ -102,7 +107,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                 toastContext.setToastMessage(res.message || 'Something went wrong.');
                 toastContext.setToast(true);
             }
-        }).catch(() => setDeletingId(null));
+        }).catch(() => { setDeletingId(null); setDeleteTarget(null); });
     };
 
     const handleClose = () => {
@@ -111,6 +116,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
     };
 
     return (
+        <>
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 Manage Expense Types
@@ -154,7 +160,7 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                                                 )}
                                                 {canDelete && (
                                                     <Tooltip title="Delete">
-                                                        <IconButton size="small" onClick={() => handleDelete(type.uuid)} disabled={deletingId === type.uuid} color="error">
+                                                        <IconButton size="small" onClick={() => setDeleteTarget(type)} disabled={deletingId === type.uuid} color="error">
                                                             {deletingId === type.uuid ? <CircularProgress size={16} /> : <DeleteIcon fontSize="small" />}
                                                         </IconButton>
                                                     </Tooltip>
@@ -217,6 +223,17 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
                 </Box>
             </DialogActions>
         </Dialog>
+
+        <AppDialog
+            open={!!deleteTarget}
+            handleDialogClose={() => setDeleteTarget(null)}
+            title="Delete Expense Type"
+            body={`Are you sure you want to delete "${deleteTarget?.name}"?`}
+            dialogBtnLoading={!!deletingId}
+            dialogBtnLabel="Delete"
+            onSubmit={confirmDelete}
+        />
+        </>
     );
 }
 
