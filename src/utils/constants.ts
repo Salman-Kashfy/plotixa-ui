@@ -526,7 +526,7 @@ export const emptyListResponse = {
 export const emptyMutationResponse = {
     data: null,
     status: false,
-    errorMessage: null
+    message: null
 }
 
 export enum OTP_CHANNEL {

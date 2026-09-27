@@ -67,6 +67,9 @@ export const POST = async (url, data = null, config = {}) => {
                 window.location.href = constants.APP_URL
             }
         }
+        if (e?.response.status === 409){
+            return e.response.data
+        }
     }
 };
 

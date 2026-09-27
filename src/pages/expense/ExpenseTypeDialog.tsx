@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, IconButton, List, ListItem, ListItemText,
@@ -10,9 +10,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { GetExpenseTypes, CreateExpenseType, UpdateExpenseType, DeleteExpenseType } from '../../services/expense.service';
+import { GetExpenseTypes, UpsertExpenseType, DeleteExpenseType } from '../../services/expense.service';
 import { constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
+import { ToastContext } from '../../hooks/ToastContext';
 
 type ExpenseType = { uuid: string; name: string };
 
@@ -23,6 +24,7 @@ type Props = {
 };
 
 function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
+    const toastContext: any = useContext(ToastContext);
     const [types, setTypes] = useState<ExpenseType[]>([]);
     const [loading, setLoading] = useState(false);
     const [newName, setNewName] = useState('');
@@ -50,12 +52,20 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
     const handleAdd = () => {
         if (!newName.trim()) return;
         setSavingId('new');
-        CreateExpenseType({ name: newName.trim() }).then((res) => {
+        const payload = {
+            name: newName.trim(),
+            projectUuid: localStorage.getItem(constants.PROJECT_UUID) || ''
+        }
+        UpsertExpenseType(payload).then((res) => {
             setSavingId(null);
             if (res.status) {
                 setNewName('');
                 setAdding(false);
                 fetchTypes();
+            } else {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage(res.message || 'Something went wrong.');
+                toastContext.setToast(true);
             }
         }).catch(() => setSavingId(null));
     };
@@ -63,11 +73,20 @@ function ExpenseTypeDialog({ open, onClose, onUpdated }: Props) {
     const handleUpdate = (uuid: string) => {
         if (!editingName.trim()) return;
         setSavingId(uuid);
-        UpdateExpenseType(uuid, { name: editingName.trim() }).then((res) => {
+         const payload = {
+            uuid,
+            name: editingName.trim(),
+            projectUuid: localStorage.getItem(constants.PROJECT_UUID) || ''
+        }
+        UpsertExpenseType(payload).then((res) => {
             setSavingId(null);
             if (res.status) {
                 setEditingId(null);
                 fetchTypes();
+            } else {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage(res.message || 'Something went wrong.');
+                toastContext.setToast(true);
             }
         }).catch(() => setSavingId(null));
     };

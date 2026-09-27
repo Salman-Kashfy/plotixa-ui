@@ -8,13 +8,9 @@ export const GetExpenseTypes = async (params: { projectUuid: string; [key: strin
     return response?.status ? response.data : [];
 };
 
-export const CreateExpenseType = async (data: { name: string }) => {
+export const UpsertExpenseType = async (data: { name: string; projectUuid: string; uuid?: string }) => {
     const response: any = await POST(apiUrl.expenseTypes, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const UpdateExpenseType = async (id: string, data: { name: string }) => {
-    const response: any = await POST(`${apiUrl.expenseTypes}/${id}`, data as any);
+    console.log({response});
     return response || emptyMutationResponse;
 };
 
