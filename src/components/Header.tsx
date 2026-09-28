@@ -87,6 +87,7 @@ function Header({
         localStorage.setItem(constants.PROJECT_UUID, uuid);
         adminContext.setProjectUuid(uuid);
         handleCloseUserMenu();
+        window.location.reload();
     };
 
     const handleCloseUserMenu = () => {
