@@ -15,7 +15,7 @@ import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
 import { GetCustomers } from '../../services/customer.service';
-import { GetPlotBlocks, GetPlotCategories, GetPlots } from '../../services/plot.service';
+import { GetBlocks, GetPlotCategories, GetPlots } from '../../services/plot.service';
 import { AdminContext } from '../../hooks/AdminContext';
 
 type Props = {
@@ -39,7 +39,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
     // Filters
-    const [blocks, setBlocks] = useState<{ id: string; name: string }[]>([]);
+    const [blocks, setBlocks] = useState<{ uuid: string; name: string }[]>([]);
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 
     // Plots
@@ -59,7 +59,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
             customerId: data.customer?.id || '',
-            blockId: data.plot?.block?.id || '',
+            blockId: data.plot?.block?.uuid || data.plot?.block?.id || '',
             categoryId: data.plot?.category?.id || '',
             plotId: data.plot?.id || '',
             amount: data.amount || '',
@@ -90,7 +90,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
 
     // Fetch blocks and categories on mount
     useEffect(() => {
-        GetPlotBlocks().then(setBlocks);
+        GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
         GetPlotCategories().then(setCategories);
     }, []);
 
@@ -103,7 +103,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
             }
             reset({
                 customerId: data.customer?.id || '',
-                blockId: data.plot?.block?.id || '',
+                blockId: data.plot?.block?.uuid || data.plot?.block?.id || '',
                 categoryId: data.plot?.category?.id || '',
                 plotId: data.plot?.id || '',
                 amount: data.amount || '',
@@ -212,7 +212,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
                                         >
                                             <MenuItem value=""><em>Select block</em></MenuItem>
                                             {blocks.map((b) => (
-                                                <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                                                <MenuItem key={b.uuid} value={b.uuid}>{b.name}</MenuItem>
                                             ))}
                                         </Select>
                                         {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}

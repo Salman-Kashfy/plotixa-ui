@@ -12,9 +12,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { NavLink } from 'react-router-dom';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
+import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, constants, PERMISSIONS, PLOT_STATUS, PLOT_STATUS_COLOR } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetPlots, DeletePlot, GetPlotBlocks, GetPlotCategories } from '../../services/plot.service';
+import { GetPlots, DeletePlot, GetBlocks, GetPlotCategories } from '../../services/plot.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -25,11 +26,12 @@ function Plot() {
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
     const [page, setPage] = useState(0);
     const [paging, setPaging] = useState({ totalPages: 0, totalResultCount: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
-    const [blocks, setBlocks] = useState<{ id: string; name: string }[]>([]);
+    const [blocks, setBlocks] = useState<{ uuid: string; name: string }[]>([]);
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [blockId, setBlockId] = useState('');
     const [categoryId, setCategoryId] = useState('');
@@ -106,7 +108,7 @@ function Plot() {
 
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([{ name: 'Plots' }]);
-        GetPlotBlocks().then(setBlocks);
+        GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
         GetPlotCategories().then(setCategories);
     }, []);
 
@@ -124,7 +126,7 @@ function Plot() {
                                 <Select value={blockId} onChange={(e) => handleBlockChange(e.target.value)} label="Block">
                                     <MenuItem value="">All</MenuItem>
                                     {blocks.map((b) => (
-                                        <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                                        <MenuItem key={b.uuid} value={b.uuid}>{b.name}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>

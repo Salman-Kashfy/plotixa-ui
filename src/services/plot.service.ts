@@ -1,20 +1,15 @@
 import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
 import { GET, POST } from './api.service.wrapper';
 
-// ─── Plot Blocks ──────────────────────────────────────────────────────────────
+// ─── Blocks ───────────────────────────────────────────────────────────────────
 
-export const GetPlotBlocks = async (params = {}) => {
-    const response: any = await GET(apiUrl.plotBlocks, params);
+export const GetBlocks = async (params: { projectUuid: string; [key: string]: any }) => {
+    const response: any = await GET(apiUrl.blocks, params);
     return response?.status ? response.data : [];
 };
 
-export const CreatePlotBlock = async (data: { name: string }) => {
-    const response: any = await POST(apiUrl.plotBlocks, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const UpdatePlotBlock = async (id: string, data: { name: string }) => {
-    const response: any = await POST(`${apiUrl.plotBlocks}/${id}`, data as any);
+export const UpsertBlock = async (data: { name: string; projectUuid: string; uuid?: string }) => {
+    const response: any = await POST(apiUrl.blocks, data as any);
     return response || emptyMutationResponse;
 };
 

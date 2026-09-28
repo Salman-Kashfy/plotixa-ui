@@ -208,6 +208,7 @@ export const apiUrl = {
     expenses: '/expenses',
     expenseTypes: '/expense-types',
     plots: '/plots',
+    blocks: '/blocks',
     plotBlocks: '/plot-blocks',
     plotCategories: '/plot-categories',
     customers: '/customers',

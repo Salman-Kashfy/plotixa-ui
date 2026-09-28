@@ -11,7 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
-export type CrudOption = { id: string; name: string };
+export type CrudOption = { id: string; uuid?: string; name: string };
 
 type Permissions = {
     canCreate: boolean;
@@ -47,7 +47,7 @@ function CrudOptionDialog({
     const refresh = () => {
         setLoading(true);
         fetchItems().then((data) => {
-            setItems(data);
+            setItems(data.map((item) => ({ ...item, id: item.uuid || item.id })));
             setLoading(false);
         }).catch(() => setLoading(false));
     };

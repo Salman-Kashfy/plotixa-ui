@@ -12,7 +12,7 @@ import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
 import {
-    GetPlotBlocks, CreatePlotBlock, UpdatePlotBlock, DeletePlotBlock,
+    GetBlocks, UpsertBlock, DeletePlotBlock,
     GetPlotCategories, CreatePlotCategory, UpdatePlotCategory, DeletePlotCategory,
 } from '../../services/plot.service';
 import { hasPermission } from '../../utils/permissions';
@@ -60,7 +60,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
             id: data.id || '',
-            blockId: data.block?.id || '',
+            blockId: data.block?.uuid || data.block?.id || '',
             categoryId: data.category?.id || '',
             noOfPlots: data.noOfPlots || '',
             price: data.price || '',
@@ -69,7 +69,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
 
     const fetchBlocks = () => {
         setBlocksLoading(true);
-        GetPlotBlocks().then((d) => { setBlocks(d); setBlocksLoading(false); })
+        GetBlocks({ projectUuid: adminContext.projectUuid }).then((d) => { setBlocks(d); setBlocksLoading(false); })
             .catch(() => setBlocksLoading(false));
     };
 
@@ -88,7 +88,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         if (Object.keys(data).length) {
             reset({
                 id: data.id || '',
-                blockId: data.block?.id || '',
+                blockId: data.block?.uuid || data.block?.id || '',
                 categoryId: data.category?.id || '',
                 noOfPlots: data.noOfPlots || '',
                 price: data.price || '',
@@ -134,7 +134,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                                             <Select {...field} label="Block" disabled={blocksLoading}>
                                                 <MenuItem value=""><em>Select block</em></MenuItem>
                                                 {blocks.map((b) => (
-                                                    <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+                                                    <MenuItem key={b.uuid || b.id} value={b.uuid || b.id}>{b.name}</MenuItem>
                                                 ))}
                                             </Select>
                                             {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
@@ -256,13 +256,13 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 onClose={() => setBlockDialogOpen(false)}
                 onUpdated={(updated) => setBlocks(updated)}
                 permissions={{
-                    canCreate: hasPermission(PERMISSIONS.PLOT_BLOCK.CREATE),
-                    canUpdate: hasPermission(PERMISSIONS.PLOT_BLOCK.UPDATE),
+                    canCreate: hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT),
+                    canUpdate: hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT),
                     canDelete: hasPermission(PERMISSIONS.PLOT_BLOCK.DELETE),
                 }}
-                fetchItems={GetPlotBlocks}
-                createItem={CreatePlotBlock}
-                updateItem={UpdatePlotBlock}
+                fetchItems={() => GetBlocks({ projectUuid: adminContext.projectUuid })}
+                createItem={({ name }) => UpsertBlock({ name, projectUuid: adminContext.projectUuid })}
+                updateItem={(uuid, { name }) => UpsertBlock({ uuid, name, projectUuid: adminContext.projectUuid })}
                 deleteItem={DeletePlotBlock}
             />
 
