@@ -54,6 +54,7 @@ function Expense() {
     const columns = [
         { id: 'expenseType', label: 'Expense Type', minWidth: 200 },
         { id: 'amount',      label: 'Amount',        minWidth: 150 },
+        { id: 'date',        label: 'Date',          minWidth: 150 },
         { id: 'actions',     label: 'Actions',        minWidth: 100 },
     ];
 
@@ -97,6 +98,7 @@ function Expense() {
                 id: e.uuid,
                 expenseType: e.expenseType?.name || '—',
                 amount: `${currencyCode ? `${currencyCode} ` : ''}${Number(e.amount).toLocaleString()}`,
+                date: e.date ? dayjs(e.date).format('MMM DD, YYYY') : '—',
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.EXPENSE.UPSERT) && (

@@ -15,6 +15,10 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddIcon from '@mui/icons-material/Add';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
@@ -48,7 +52,7 @@ function CreateExpense() {
 
     const { control, handleSubmit, watch, formState: { errors } } = useForm({
         mode: 'onChange',
-        defaultValues: { expenses: [] as { expenseTypeId: string; amount: string }[] },
+        defaultValues: { date: dayjs().format('YYYY-MM-DD'), expenses: [] as { expenseTypeId: string; amount: string }[] },
     });
 
     const { fields, append, remove } = useFieldArray({ control, name: 'expenses' });
@@ -94,6 +98,7 @@ function CreateExpense() {
             expenseTypeUuid: e.expenseTypeId,
             projectUuid: adminContext.projectUuid,
             amount: Number(e.amount),
+            date: data.date,
         }))).then((responses) => {
             const failed = responses.find((response: any) => !response.status);
             if (!failed) {
@@ -126,6 +131,32 @@ function CreateExpense() {
                                     </IconButton>
                                 </Tooltip>
                             )}
+                        </Box>
+
+                        <Box sx={{ mb: 3, maxWidth: { xs: '100%', sm: 260 } }}>
+                            <Controller
+                                name="date"
+                                control={control}
+                                rules={{ required: { value: true, message: 'Date is required' } }}
+                                render={({ field: f, fieldState: { error } }) => (
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            label="Date"
+                                            value={f.value ? dayjs(f.value) : null}
+                                            onChange={(value) => f.onChange(value ? value.format('YYYY-MM-DD') : '')}
+                                            format="MMM DD, YYYY"
+                                            slotProps={{
+                                                textField: {
+                                                    variant: 'standard',
+                                                    fullWidth: true,
+                                                    error: !!error,
+                                                    helperText: error?.message,
+                                                },
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                )}
+                            />
                         </Box>
 
                         {fields.map((field, index) => {
