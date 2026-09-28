@@ -41,7 +41,7 @@ function Expense() {
     const [paging, setPaging] = useState({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange<Dayjs>>([null, null]);
+    const [dateRange, setDateRange] = useState<DateRange<Dayjs>>([dayjs(), dayjs()]);
     const [deleteTarget, setDeleteTarget] = useState<{ uuid: string; expenseType: string } | null>(null);
     const [deleting, setDeleting] = useState(false);
 
@@ -63,7 +63,14 @@ function Expense() {
     };
 
     const handleDateRangeChange = (values: DateRange<Dayjs>) => {
-        setDateRange(values);
+         let start = values[0], end = values[1]
+        if(start && end){
+            start = dayjs(values[0])
+            end = dayjs(values[1])
+            setDateRange([start, end])
+        }else if(!start && !end){
+            setDateRange([null, null])
+        }
         setPage(0);
     };
 
