@@ -578,9 +578,8 @@ export enum GYM_QR_SESSION_STATE {
 }
 
 export enum PLOT_STATUS {
-    AVAILABLE = 'AVAILABLE',
-    BOOKED = 'BOOKED',
-    TOKEN = 'TOKEN',
+    ACTIVE = 'ACTIVE',
+    RESERVED = 'RESERVED',
     SOLD = 'SOLD',
 }
 
@@ -594,9 +593,8 @@ export const TENURE_OPTIONS = [
 ];
 
 export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'info' | 'error'> = {
-    [PLOT_STATUS.AVAILABLE]: 'success',
-    [PLOT_STATUS.BOOKED]: 'warning',
-    [PLOT_STATUS.TOKEN]: 'info',
+    [PLOT_STATUS.ACTIVE]: 'success',
+    [PLOT_STATUS.RESERVED]: 'warning',
     [PLOT_STATUS.SOLD]: 'error',
 };
 

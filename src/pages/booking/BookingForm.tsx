@@ -128,7 +128,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
             projectUuid: adminContext.projectUuid,
             categoryId,
         }).then((res) => {
-            setPlots(res.data || []);
+            setPlots(res.list || []);
             setPlotsLoading(false);
         }).catch(() => setPlotsLoading(false));
     }, [categoryId, adminContext.projectUuid]);

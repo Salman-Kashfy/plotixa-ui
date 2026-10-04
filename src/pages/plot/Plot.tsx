@@ -28,7 +28,7 @@ function Plot() {
     const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
     const [page, setPage] = useState(0);
-    const [paging, setPaging] = useState({ totalPages: 0, totalResultCount: 0 });
+    const [paging, setPaging] = useState({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
     const [blocks, setBlocks] = useState<{ uuid: string; name: string }[]>([]);
@@ -74,9 +74,9 @@ function Plot() {
         if (categoryId) params.categoryId = categoryId;
         if (status) params.status = status;
         GetPlots({ page: page + 1 }, params).then((response: any) => {
-            const list = response.data || [];
+            const list = response.list || [];
             setRows(list.map((e: any) => ({
-                id: e.id,
+                id: e.uuid,
                 plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
                 status: (
@@ -89,19 +89,19 @@ function Plot() {
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.PLOT.UPDATE) && (
-                            <IconButton component={NavLink} to={ROUTES.PLOT.EDIT(e.id)} color="warning" size="small">
+                            <IconButton component={NavLink} to={ROUTES.PLOT.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>
                         )}
                         {hasPermission(PERMISSIONS.PLOT.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.id)}>
+                            <IconButton color="error" size="small" onClick={() => handleDelete(e.uuid)}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         )}
                     </Box>
                 ),
             })));
-            setPaging(response.paging || { totalPages: 0, totalResultCount: 0 });
+            setPaging(response.pagination || { page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
             setLoading(false);
         }).catch(() => setLoading(false));
     };
@@ -109,7 +109,7 @@ function Plot() {
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([{ name: 'Plots' }]);
         GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
-        GetPlotCategories().then(setCategories);
+        GetPlotCategories({ projectUuid: adminContext.projectUuid }).then(setCategories);
     }, []);
 
     useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status, adminContext.projectUuid]);
@@ -137,7 +137,7 @@ function Plot() {
                                 <Select value={categoryId} onChange={(e) => handleCategoryChange(e.target.value)} label="Category">
                                     <MenuItem value="">All</MenuItem>
                                     {categories.map((c) => (
-                                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                        <MenuItem key={c.uuid} value={c.uuid}>{c.name}</MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
@@ -212,7 +212,7 @@ function Plot() {
                         )}
                         <TablePagination
                             component="div"
-                            count={paging.totalResultCount}
+                            count={paging.total}
                             rowsPerPage={constants.PER_PAGE}
                             page={page}
                             onPageChange={handleChangePage}

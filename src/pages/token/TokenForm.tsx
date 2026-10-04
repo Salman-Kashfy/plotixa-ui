@@ -119,11 +119,11 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
             return;
         }
         setPlotsLoading(true);
-        const params: any = { projectUuid: adminContext.projectUuid, status: 'AVAILABLE' };
+        const params: any = { projectUuid: adminContext.projectUuid, status: 'ACTIVE' };
         if (blockIdValue) params.blockId = blockIdValue;
         if (categoryIdValue) params.categoryId = categoryIdValue;
         GetPlots({ page: 1, limit: 200 }, params).then((res) => {
-            setPlots(res.data || []);
+            setPlots(res.list || []);
             setPlotsLoading(false);
         }).catch(() => setPlotsLoading(false));
     }, [blockIdValue, categoryIdValue, adminContext.projectUuid]);

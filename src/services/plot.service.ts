@@ -47,7 +47,9 @@ export const GetPlots = async (
     params: { projectUuid: string; [key: string]: any },
 ) => {
     const response: any = await GET(apiUrl.plots, { page, limit, ...params });
-    return response?.status ? response : emptyListResponse;
+    return response?.status
+        ? response.data
+        : { list: [], pagination: { page: 1, perPage: limit, total: 0, totalPages: 0 } };
 };
 
 export const GetPlot = async (id: string) => {
