@@ -59,9 +59,8 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
     const { control, handleSubmit, reset } = useForm({
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            id: data.id || '',
-            blockId: data.block?.uuid || data.block?.id || '',
-            categoryId: data.category?.id || '',
+            blockId: data.block?.uuid,
+            categoryId: data.category?.uuid,
             noOfPlots: data.noOfPlots || '',
             price: data.price || '',
         },
@@ -88,8 +87,8 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         if (Object.keys(data).length) {
             reset({
                 id: data.id || '',
-                blockId: data.block?.uuid || data.block?.id || '',
-                categoryId: data.category?.id || '',
+                blockId: data.block?.uuid,
+                categoryId: data.category?.uuid,
                 noOfPlots: data.noOfPlots || '',
                 price: data.price || '',
             });
@@ -164,7 +163,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                                             <Select {...field} label="Category" disabled={categoriesLoading}>
                                                 <MenuItem value=""><em>Select category</em></MenuItem>
                                                 {categories.map((c) => (
-                                                    <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                                    <MenuItem key={c.uuid} value={c.uuid}>{c.name}</MenuItem>
                                                 ))}
                                             </Select>
                                             {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
