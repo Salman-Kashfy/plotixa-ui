@@ -119,14 +119,14 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
             return;
         }
         setPlotsLoading(true);
-        const params: any = { status: 'AVAILABLE' };
+        const params: any = { projectUuid: adminContext.projectUuid, status: 'AVAILABLE' };
         if (blockIdValue) params.blockId = blockIdValue;
         if (categoryIdValue) params.categoryId = categoryIdValue;
         GetPlots({ page: 1, limit: 200 }, params).then((res) => {
             setPlots(res.data || []);
             setPlotsLoading(false);
         }).catch(() => setPlotsLoading(false));
-    }, [blockIdValue, categoryIdValue]);
+    }, [blockIdValue, categoryIdValue, adminContext.projectUuid]);
 
     const onSubmit = (formData: any) => {
         const _data: any = {

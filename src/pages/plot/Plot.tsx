@@ -69,7 +69,7 @@ function Plot() {
 
     const fetchRows = () => {
         if (!loading) setLoading(true);
-        const params: any = {};
+        const params: any = { projectUuid: adminContext.projectUuid };
         if (blockId) params.blockId = blockId;
         if (categoryId) params.categoryId = categoryId;
         if (status) params.status = status;
@@ -112,7 +112,7 @@ function Plot() {
         GetPlotCategories().then(setCategories);
     }, []);
 
-    useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status]);
+    useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status, adminContext.projectUuid]);
 
     return (
         <>

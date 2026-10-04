@@ -124,11 +124,14 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     useEffect(() => {
         if (!categoryId) { setPlots([]); return; }
         setPlotsLoading(true);
-        GetPlots({ page: 1, limit: 200 }, { categoryId }).then((res) => {
+        GetPlots({ page: 1, limit: 200 }, {
+            projectUuid: adminContext.projectUuid,
+            categoryId,
+        }).then((res) => {
             setPlots(res.data || []);
             setPlotsLoading(false);
         }).catch(() => setPlotsLoading(false));
-    }, [categoryId]);
+    }, [categoryId, adminContext.projectUuid]);
 
     // Populate edit data
     useEffect(() => {

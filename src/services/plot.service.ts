@@ -42,7 +42,10 @@ export const DeletePlotCategory = async (id: string) => {
 
 // ─── Plots ────────────────────────────────────────────────────────────────────
 
-export const GetPlots = async ({ page = 1, limit = constants.PER_PAGE }, params = {}) => {
+export const GetPlots = async (
+    { page = 1, limit = constants.PER_PAGE },
+    params: { projectUuid: string; [key: string]: any },
+) => {
     const response: any = await GET(apiUrl.plots, { page, limit, ...params });
     return response?.status ? response : emptyListResponse;
 };
