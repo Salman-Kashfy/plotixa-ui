@@ -42,11 +42,11 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
     const [blockDialogOpen, setBlockDialogOpen] = useState(false);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
-    const canManageBlocks = hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT) ||
-        hasPermission(PERMISSIONS.PLOT_BLOCK.DELETE);
+    const canManageBlocks = hasPermission(PERMISSIONS.BLOCK.UPSERT) ||
+        hasPermission(PERMISSIONS.BLOCK.DELETE);
 
-    const canManageCategories = hasPermission(PERMISSIONS.PLOT_CATEGORY.UPSERT) ||
-        hasPermission(PERMISSIONS.PLOT_CATEGORY.DELETE);
+    const canManageCategories = hasPermission(PERMISSIONS.CATEGORY.UPSERT) ||
+        hasPermission(PERMISSIONS.CATEGORY.DELETE);
 
     const defaultValues = {
         id: '',
@@ -75,7 +75,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
 
     const fetchCategories = () => {
         setCategoriesLoading(true);
-        GetPlotCategories().then((d) => { setCategories(d); setCategoriesLoading(false); })
+        GetPlotCategories({ projectUuid: adminContext.projectUuid }).then((d) => { setCategories(d); setCategoriesLoading(false); })
             .catch(() => setCategoriesLoading(false));
     };
 
@@ -256,9 +256,9 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 onClose={() => setBlockDialogOpen(false)}
                 onUpdated={(updated) => setBlocks(updated)}
                 permissions={{
-                    canCreate: hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT),
-                    canUpdate: hasPermission(PERMISSIONS.PLOT_BLOCK.UPSERT),
-                    canDelete: hasPermission(PERMISSIONS.PLOT_BLOCK.DELETE),
+                    canCreate: hasPermission(PERMISSIONS.BLOCK.UPSERT),
+                    canUpdate: hasPermission(PERMISSIONS.BLOCK.UPSERT),
+                    canDelete: hasPermission(PERMISSIONS.BLOCK.DELETE),
                 }}
                 fetchItems={() => GetBlocks({ projectUuid: adminContext.projectUuid })}
                 createItem={({ name }) => UpsertBlock({ name, projectUuid: adminContext.projectUuid })}
@@ -273,13 +273,13 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 onClose={() => setCategoryDialogOpen(false)}
                 onUpdated={(updated) => setCategories(updated)}
                 permissions={{
-                    canCreate: hasPermission(PERMISSIONS.PLOT_CATEGORY.CREATE),
-                    canUpdate: hasPermission(PERMISSIONS.PLOT_CATEGORY.UPDATE),
-                    canDelete: hasPermission(PERMISSIONS.PLOT_CATEGORY.DELETE),
+                    canCreate: hasPermission(PERMISSIONS.CATEGORY.UPSERT),
+                    canUpdate: hasPermission(PERMISSIONS.CATEGORY.UPSERT),
+                    canDelete: hasPermission(PERMISSIONS.CATEGORY.DELETE),
                 }}
-                fetchItems={GetPlotCategories}
-                createItem={CreatePlotCategory}
-                updateItem={UpdatePlotCategory}
+                fetchItems={() => GetPlotCategories({ projectUuid: adminContext.projectUuid })}
+                createItem={({ name }) => CreatePlotCategory({ name, projectUuid: adminContext.projectUuid })}
+                updateItem={(id, { name }) => UpdatePlotCategory(id, { name, projectUuid: adminContext.projectUuid })}
                 deleteItem={DeletePlotCategory}
             />
         </form>

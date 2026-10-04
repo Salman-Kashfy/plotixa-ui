@@ -20,17 +20,17 @@ export const DeletePlotBlock = async (id: string) => {
 
 // ─── Plot Categories ──────────────────────────────────────────────────────────
 
-export const GetPlotCategories = async (params = {}) => {
+export const GetPlotCategories = async (params: { projectUuid?: string } = {}) => {
     const response: any = await GET(apiUrl.plotCategories, params);
     return response?.status ? response.data : [];
 };
 
-export const CreatePlotCategory = async (data: { name: string }) => {
+export const CreatePlotCategory = async (data: { name: string; projectUuid: string }) => {
     const response: any = await POST(apiUrl.plotCategories, data as any);
     return response || emptyMutationResponse;
 };
 
-export const UpdatePlotCategory = async (id: string, data: { name: string }) => {
+export const UpdatePlotCategory = async (id: string, data: { name: string; projectUuid: string }) => {
     const response: any = await POST(`${apiUrl.plotCategories}/${id}`, data as any);
     return response || emptyMutationResponse;
 };

@@ -210,7 +210,7 @@ export const apiUrl = {
     plots: '/plots',
     blocks: '/blocks',
     plotBlocks: '/plot-blocks',
-    plotCategories: '/plot-categories',
+    plotCategories: '/categories',
     customers: '/customers',
     tokens: '/tokens',
     bookings: '/bookings',
@@ -324,10 +324,10 @@ export const ROUTES = {
         CREATE: '/plot/create',
         EDIT: ((id = null) => '/plot/' + (id || ':id') + '/edit'),
     },
-    PLOT_BLOCK: {
+    BLOCK: {
         LIST: '/plot-blocks',
     },
-    PLOT_CATEGORY: {
+    CATEGORY: {
         LIST: '/plot-categories',
     },
     CUSTOMER: {
@@ -451,21 +451,15 @@ export const PERMISSIONS = {
         UPSERT: 'plot:upsert',
         DELETE: 'plot:delete',
     },
-    PLOT_BLOCK: {
-        LIST: 'plot_block:view',
-        UPSERT: 'plot_block:upsert',
-        DELETE: 'plot_block:delete',
+    BLOCK: {
+        LIST: 'block:view',
+        UPSERT: 'block:upsert',
+        DELETE: 'block:delete',
     },
-    PLOT_CATEGORY: {
-        LIST: 'plot_category:view',
-        UPSERT: 'plot_category:upsert',
-        DELETE: 'plot_category:delete',
-    },
-    CUSTOMER: {
-        LIST: 'customer:view',
-        CREATE: 'customer:create',
-        UPDATE: 'customer:update',
-        DELETE: 'customer:delete',
+    CATEGORY: {
+        LIST: 'category:view',
+        UPSERT: 'category:upsert',
+        DELETE: 'category:delete',
     },
     TOKEN: {
         LIST: 'token:view',
