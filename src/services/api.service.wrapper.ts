@@ -44,9 +44,9 @@ export const POST = async (url, data = null, config = {}) => {
         }
         return res?.data;
     } catch (e) {
-        if (e?.response.status === 400) {
-            const error = first(e.response.data.errors);
-            if (error.extensions.code === 'UNAUTHENTICATED') {
+        if (e?.response?.status === 400) {
+            const error = first(e.response.data?.errors);
+            if (error?.extensions?.code === 'UNAUTHENTICATED') {
                 try {
                     const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
                     if (refreshRes?.data.status) {
@@ -58,18 +58,15 @@ export const POST = async (url, data = null, config = {}) => {
                     if(e?.response?.status === 401){
                         await EmptyLocalStorage()
                         window.location.href = constants.APP_URL
-                    }else{
-                        console.log(e);
                     }
                 }
-            } else if(error.extensions.code === 'SUBSCRIPTION_EXPIRED'){
+            } else if(error?.extensions?.code === 'SUBSCRIPTION_EXPIRED'){
                 await EmptyLocalStorage()
                 window.location.href = constants.APP_URL
             }
         }
-        if (e?.response.status === 409){
-            return e.response.data
-        }
+        if (e?.response?.data) return e.response.data;
+        throw e;
     }
 };
 
@@ -135,6 +132,5 @@ export const DELETE = async (url, params = {}, config = {}) => {
         }
     }
 };
-
 
 

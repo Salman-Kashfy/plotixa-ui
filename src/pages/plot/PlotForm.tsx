@@ -1,24 +1,12 @@
-import { useContext, useEffect, useState } from 'react';
-import {
-    Box, Card, CardContent, Typography,
-    FormControl, InputLabel, Select, MenuItem,
-    IconButton, Tooltip, FormHelperText, InputAdornment,
-} from '@mui/material';
+import { useContext, useEffect } from 'react';
+import { Box, Card, CardContent, Typography, InputAdornment } from '@mui/material';
 import { AdminContext } from '../../hooks/AdminContext';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
-import SettingsIcon from '@mui/icons-material/Settings';
 import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
-import {
-    GetBlocks, UpsertBlock, DeletePlotBlock,
-    GetPlotCategories, CreatePlotCategory, UpdatePlotCategory, DeletePlotCategory,
-} from '../../services/plot.service';
-import { hasPermission } from '../../utils/permissions';
-import { PERMISSIONS } from '../../utils/constants';
-import CrudOptionDialog, { CrudOption } from './CrudOptionDialog';
-import { ToastContext } from '../../hooks/ToastContext';
+import PlotLocationFields from './PlotLocationFields';
 
 type Props = {
     data?: any;
@@ -26,33 +14,17 @@ type Props = {
     btnLabel: string;
     loading: boolean;
     formLoader?: boolean;
-    create?: boolean;
 };
 
-function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, create = false }: Props) {
-    const toastContext: any = useContext(ToastContext);
+function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }: Props) {
     const adminContext: any = useContext(AdminContext);
     const currencyCode = adminContext.projects?.find(
         (p: any) => p.uuid === adminContext.projectUuid
     )?.currencyCode || '';
-    const [blocks, setBlocks] = useState<CrudOption[]>([]);
-    const [categories, setCategories] = useState<CrudOption[]>([]);
-    const [blocksLoading, setBlocksLoading] = useState(false);
-    const [categoriesLoading, setCategoriesLoading] = useState(false);
-    const [blockDialogOpen, setBlockDialogOpen] = useState(false);
-    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-
-    const canManageBlocks = hasPermission(PERMISSIONS.BLOCK.UPSERT) ||
-        hasPermission(PERMISSIONS.BLOCK.DELETE);
-
-    const canManageCategories = hasPermission(PERMISSIONS.CATEGORY.UPSERT) ||
-        hasPermission(PERMISSIONS.CATEGORY.DELETE);
-
     const defaultValues = {
         id: '',
         blockId: '',
         categoryId: '',
-        noOfPlots: '',
         price: '',
     };
 
@@ -61,27 +33,9 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
             blockId: data.block?.uuid,
             categoryId: data.category?.uuid,
-            noOfPlots: data.noOfPlots || '',
             price: data.price || '',
         },
     });
-
-    const fetchBlocks = () => {
-        setBlocksLoading(true);
-        GetBlocks({ projectUuid: adminContext.projectUuid }).then((d) => { setBlocks(d); setBlocksLoading(false); })
-            .catch(() => setBlocksLoading(false));
-    };
-
-    const fetchCategories = () => {
-        setCategoriesLoading(true);
-        GetPlotCategories({ projectUuid: adminContext.projectUuid }).then((d) => { setCategories(d); setCategoriesLoading(false); })
-            .catch(() => setCategoriesLoading(false));
-    };
-
-    useEffect(() => {
-        fetchBlocks();
-        fetchCategories();
-    }, []);
 
     useEffect(() => {
         if (Object.keys(data).length) {
@@ -89,26 +43,18 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 id: data.id || '',
                 blockId: data.block?.uuid,
                 categoryId: data.category?.uuid,
-                noOfPlots: data.noOfPlots || '',
                 price: data.price || '',
             });
         }
     }, [data, reset]);
 
     const onSubmit = (formData: any) => {
-        if (!formData.blockId || !formData.categoryId) {
-            toastContext.setToastSeverity('error');
-            toastContext.setToastMessage('Block and Category are required.');
-            toastContext.setToast(true);
-            return;
-        }
         const _data: any = {
             blockId: formData.blockId,
             categoryId: formData.categoryId,
             price: Number(formData.price),
         };
         if (formData.id) _data.id = formData.id;
-        if (create) _data.noOfPlots = Number(formData.noOfPlots);
         callback(_data);
     };
 
@@ -120,89 +66,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                     <Typography variant="h6" sx={{ mb: { xs: 2, sm: 3 } }}>Plot Details</Typography>
                     <Grid container spacing={3}>
 
-                        {/* Block */}
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.5 }}>
-                                <Controller
-                                    name="blockId"
-                                    control={control}
-                                    rules={{ required: { value: true, message: 'Block is required' } }}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <FormControl variant="standard" fullWidth error={!!error}>
-                                            <InputLabel>Block</InputLabel>
-                                            <Select {...field} label="Block" disabled={blocksLoading}>
-                                                <MenuItem value=""><em>Select block</em></MenuItem>
-                                                {blocks.map((b) => (
-                                                    <MenuItem key={b.uuid || b.id} value={b.uuid || b.id}>{b.name}</MenuItem>
-                                                ))}
-                                            </Select>
-                                            {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
-                                        </FormControl>
-                                    )}
-                                />
-                                {canManageBlocks && (
-                                    <Tooltip title="Manage blocks">
-                                        <IconButton size="small" onClick={() => setBlockDialogOpen(true)} sx={{ mb: 0.5 }}>
-                                            <SettingsIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </Box>
-                        </Grid>
-
-                        {/* Category */}
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.5 }}>
-                                <Controller
-                                    name="categoryId"
-                                    control={control}
-                                    rules={{ required: { value: true, message: 'Category is required' } }}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <FormControl variant="standard" fullWidth error={!!error}>
-                                            <InputLabel>Category</InputLabel>
-                                            <Select {...field} label="Category" disabled={categoriesLoading}>
-                                                <MenuItem value=""><em>Select category</em></MenuItem>
-                                                {categories.map((c) => (
-                                                    <MenuItem key={c.uuid} value={c.uuid}>{c.name}</MenuItem>
-                                                ))}
-                                            </Select>
-                                            {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
-                                        </FormControl>
-                                    )}
-                                />
-                                {canManageCategories && (
-                                    <Tooltip title="Manage categories">
-                                        <IconButton size="small" onClick={() => setCategoryDialogOpen(true)} sx={{ mb: 0.5 }}>
-                                            <SettingsIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </Box>
-                        </Grid>
-
-                        {/* No of Plots — create only */}
-                        {create && (
-                            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                <Controller
-                                    name="noOfPlots"
-                                    control={control}
-                                    rules={{
-                                        required: { value: true, message: 'No of plots is required' },
-                                        min: { value: 1, message: 'Must be at least 1' },
-                                    }}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <FormInput
-                                            fullWidth
-                                            type="number"
-                                            error={error}
-                                            field={field}
-                                            value={field.value}
-                                            label="No of Plots"
-                                        />
-                                    )}
-                                />
-                            </Grid>
-                        )}
+                        <PlotLocationFields control={control} />
 
                         {/* Price */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -248,39 +112,6 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false, 
                 </LoadingButton>
             </Box>
 
-            {/* Block CRUD Dialog */}
-            <CrudOptionDialog
-                open={blockDialogOpen}
-                title="Manage Blocks"
-                onClose={() => setBlockDialogOpen(false)}
-                onUpdated={(updated) => setBlocks(updated)}
-                permissions={{
-                    canCreate: hasPermission(PERMISSIONS.BLOCK.UPSERT),
-                    canUpdate: hasPermission(PERMISSIONS.BLOCK.UPSERT),
-                    canDelete: hasPermission(PERMISSIONS.BLOCK.DELETE),
-                }}
-                fetchItems={() => GetBlocks({ projectUuid: adminContext.projectUuid })}
-                createItem={({ name }) => UpsertBlock({ name, projectUuid: adminContext.projectUuid })}
-                updateItem={(uuid, { name }) => UpsertBlock({ uuid, name, projectUuid: adminContext.projectUuid })}
-                deleteItem={DeletePlotBlock}
-            />
-
-            {/* Category CRUD Dialog */}
-            <CrudOptionDialog
-                open={categoryDialogOpen}
-                title="Manage Categories"
-                onClose={() => setCategoryDialogOpen(false)}
-                onUpdated={(updated) => setCategories(updated)}
-                permissions={{
-                    canCreate: hasPermission(PERMISSIONS.CATEGORY.UPSERT),
-                    canUpdate: hasPermission(PERMISSIONS.CATEGORY.UPSERT),
-                    canDelete: hasPermission(PERMISSIONS.CATEGORY.DELETE),
-                }}
-                fetchItems={() => GetPlotCategories({ projectUuid: adminContext.projectUuid })}
-                createItem={({ name }) => CreatePlotCategory({ name, projectUuid: adminContext.projectUuid })}
-                updateItem={(id, { name }) => UpdatePlotCategory(id, { name, projectUuid: adminContext.projectUuid })}
-                deleteItem={DeletePlotCategory}
-            />
         </form>
     );
 }

@@ -52,8 +52,19 @@ export const GetPlot = async (id: string) => {
     return response?.status ? response.data : {};
 };
 
-export const CreatePlot = async (data: { blockId: string; categoryId: string; noOfPlots: number }) => {
-    const response: any = await POST(apiUrl.plots, data as any);
+export type CreatePlotPayload = {
+    projectUuid: string;
+    blockUuid: string;
+    categoryUuid: string;
+    startPlotNo: number;
+    endPlotNo?: number;
+    status: 'ACTIVE' | 'RESERVED' | 'SOLD';
+};
+
+export const CreatePlot = async (data: CreatePlotPayload) => {
+    const response: any = await POST(apiUrl.plots, data, {
+        headers: { 'Content-Type': 'application/json' },
+    });
     return response || emptyMutationResponse;
 };
 
