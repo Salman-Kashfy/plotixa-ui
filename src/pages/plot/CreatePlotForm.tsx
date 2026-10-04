@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import {
-    Box, Card, CardContent, FormControl, FormHelperText,
-    InputLabel, MenuItem, Select, Typography,
+    Box, Card, CardContent, Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -16,7 +15,6 @@ type FormValues = {
     categoryId: string;
     startPlotNo: string;
     endPlotNo: string;
-    status: 'ACTIVE' | 'RESERVED' | 'SOLD';
 };
 
 type Props = {
@@ -26,7 +24,6 @@ type Props = {
         categoryUuid: string;
         startPlotNo: number;
         endPlotNo?: number;
-        status: FormValues['status'];
     }) => void;
     btnLabel: string;
     loading: boolean;
@@ -44,7 +41,6 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             categoryId: '',
             startPlotNo: '',
             endPlotNo: '',
-            status: 'ACTIVE',
         },
     });
 
@@ -56,7 +52,6 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             categoryUuid: formData.categoryId,
             startPlotNo: Number(formData.startPlotNo),
             ...(endPlotNo === undefined ? {} : { endPlotNo }),
-            status: formData.status,
         });
     };
 
@@ -124,24 +119,6 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
                                         label="End Plot No. (optional)"
                                         params={{ inputProps: { step: '1', min: '1', max: MAX_PLOT_NO } }}
                                     />
-                                )}
-                            />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                            <Controller
-                                name="status"
-                                control={control}
-                                rules={{ required: true }}
-                                render={({ field, fieldState: { error } }) => (
-                                    <FormControl variant="standard" fullWidth error={!!error}>
-                                        <InputLabel>Status</InputLabel>
-                                        <Select {...field} label="Status">
-                                            <MenuItem value="ACTIVE">Active</MenuItem>
-                                            <MenuItem value="RESERVED">Reserved</MenuItem>
-                                            <MenuItem value="SOLD">Sold</MenuItem>
-                                        </Select>
-                                        {error && <FormHelperText sx={{ ml: 0 }}>Status is required</FormHelperText>}
-                                    </FormControl>
                                 )}
                             />
                         </Grid>

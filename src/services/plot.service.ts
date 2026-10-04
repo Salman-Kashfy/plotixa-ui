@@ -63,7 +63,6 @@ export type CreatePlotPayload = {
     categoryUuid: string;
     startPlotNo: number;
     endPlotNo?: number;
-    status: 'ACTIVE' | 'RESERVED' | 'SOLD';
 };
 
 export const CreatePlot = async (data: CreatePlotPayload) => {
