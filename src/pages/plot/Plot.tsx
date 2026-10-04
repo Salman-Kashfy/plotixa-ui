@@ -70,8 +70,8 @@ function Plot() {
     const fetchRows = () => {
         if (!loading) setLoading(true);
         const params: any = { projectUuid: adminContext.projectUuid };
-        if (blockId) params.blockId = blockId;
-        if (categoryId) params.categoryId = categoryId;
+        if (blockId) params.blockUuid = blockId;
+        if (categoryId) params.categoryUuid = categoryId;
         if (status) params.status = status;
         GetPlots({ page: page + 1 }, params).then((response: any) => {
             const list = response.list || [];

@@ -126,7 +126,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         setPlotsLoading(true);
         GetPlots({ page: 1, limit: 200 }, {
             projectUuid: adminContext.projectUuid,
-            categoryId,
+            categoryUuid: categoryId,
         }).then((res) => {
             setPlots(res.list || []);
             setPlotsLoading(false);

@@ -120,8 +120,8 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
         }
         setPlotsLoading(true);
         const params: any = { projectUuid: adminContext.projectUuid, status: 'ACTIVE' };
-        if (blockIdValue) params.blockId = blockIdValue;
-        if (categoryIdValue) params.categoryId = categoryIdValue;
+        if (blockIdValue) params.blockUuid = blockIdValue;
+        if (categoryIdValue) params.categoryUuid = categoryIdValue;
         GetPlots({ page: 1, limit: 200 }, params).then((res) => {
             setPlots(res.list || []);
             setPlotsLoading(false);
