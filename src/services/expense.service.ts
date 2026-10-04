@@ -26,8 +26,8 @@ export const GetExpenses = async ({ page = 1, limit = constants.PER_PAGE }, para
     return response?.status ? response.data : { list: [], pagination: { page: 1, perPage: limit, total: 0, totalPages: 0 } };
 };
 
-export const GetExpense = async (id: string) => {
-    const response: any = await GET(`${apiUrl.expenses}/${id}`);
+export const GetExpense = async (id: string, params: { projectUuid: string }) => {
+    const response: any = await GET(`${apiUrl.expenses}/${id}`, params);
     return response?.status ? response.data : {};
 };
 

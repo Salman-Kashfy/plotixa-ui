@@ -8,6 +8,10 @@ import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useForm, Controller } from 'react-hook-form';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
 import { GetExpenseTypes } from '../../services/expense.service';
@@ -45,15 +49,12 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         uuid: '',
         expenseTypeId: '',
         amount: '',
+        date: '',
     };
 
     const { control, handleSubmit, reset } = useForm({
         mode: 'onChange',
-        defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            uuid: data.uuid || '',
-            expenseTypeId: data.expenseType?.uuid || '',
-            amount: data.amount || '',
-        },
+        defaultValues,
     });
 
     const fetchTypes = () => {
@@ -70,10 +71,12 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     useEffect(() => {
         if (Object.keys(data).length) {
+            const expenseDate = data.date ? dayjs(data.date) : null;
             reset({
-                uuid: data.uuid || '',
-                expenseTypeId: data.expenseType?.uuid || '',
-                amount: data.amount || '',
+                uuid: data.uuid || data.id || '',
+                expenseTypeId: data.expenseType?.uuid || data.expenseTypeUuid || data.expenseTypeId || '',
+                amount: data.amount ?? '',
+                date: expenseDate?.isValid() ? expenseDate.format('YYYY-MM-DD') : '',
             });
         }
     }, [data, reset]);
@@ -83,6 +86,7 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
             expenseTypeUuid: formData.expenseTypeId,
             projectUuid: adminContext.projectUuid,
             amount: Number(formData.amount),
+            date: formData.date,
         };
         if (formData.uuid) _data.uuid = formData.uuid;
         if (!_data.expenseTypeUuid) {
@@ -101,6 +105,31 @@ function ExpenseForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Typography variant="h6" sx={{ mb: { xs: 2, sm: 3 } }}>Expense Details</Typography>
                     <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="date"
+                                control={control}
+                                rules={{ required: { value: true, message: 'Date is required' } }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            label="Date"
+                                            value={field.value ? dayjs(field.value) : null}
+                                            onChange={(value) => field.onChange(value ? value.format('YYYY-MM-DD') : '')}
+                                            format="MMM DD, YYYY"
+                                            slotProps={{
+                                                textField: {
+                                                    variant: 'standard',
+                                                    fullWidth: true,
+                                                    error: !!error,
+                                                    helperText: error?.message,
+                                                },
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                )}
+                            />
+                        </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
                                 name="expenseTypeId"

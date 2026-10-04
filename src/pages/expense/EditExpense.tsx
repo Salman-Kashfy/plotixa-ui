@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
+import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES } from '../../utils/constants';
 import { GetExpense, UpsertExpense } from '../../services/expense.service';
 import PageTitle from '../../components/PageTitle';
@@ -10,6 +11,7 @@ import ExpenseForm from './ExpenseForm';
 function EditExpense() {
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const [loading, setLoading] = useState(false);
@@ -38,11 +40,11 @@ function EditExpense() {
             { to: ROUTES.EXPENSE.LIST, name: 'Expenses' },
             { name: 'Edit Expense' },
         ]);
-        GetExpense(id!).then((data) => {
+        GetExpense(id!, { projectUuid: adminContext.projectUuid }).then((data) => {
             setExpenseData(data);
             setFormLoader(false);
         }).catch(() => setFormLoader(false));
-    }, []);
+    }, [id, adminContext.projectUuid]);
 
     return (
         <>
