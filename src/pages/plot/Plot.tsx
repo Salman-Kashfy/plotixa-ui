@@ -28,6 +28,9 @@ function Plot() {
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
+    const currencyCode = adminContext.projects?.find(
+        (project: any) => project.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const [page, setPage] = useState(0);
     const [paging, setPaging] = useState({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
@@ -52,6 +55,7 @@ function Plot() {
         ...(canDelete ? [{ id: 'select', label: '', minWidth: 48 }] : []),
         { id: 'plot',     label: 'Plot',     minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 160 },
+        { id: 'price',    label: 'Price',    minWidth: 140 },
         { id: 'status',   label: 'Status',   minWidth: 120 },
         { id: 'actions',  label: 'Actions',  minWidth: 100 },
     ];
@@ -113,6 +117,11 @@ function Plot() {
                 deletable: e.status === PLOT_STATUS.ACTIVE,
                 plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
+                price: Number.isFinite(Number(e.price))
+                    ? `${currencyCode ? `${currencyCode} ` : ''}${Number(e.price).toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                    })}`
+                    : '—',
                 status: (
                     <Chip
                         label={e.status}
@@ -127,11 +136,10 @@ function Plot() {
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>
                         )}
-                        {canDelete && (
+                        {canDelete && e.status === PLOT_STATUS.ACTIVE && (
                             <IconButton
                                 color="error"
                                 size="small"
-                                disabled={e.status !== PLOT_STATUS.ACTIVE}
                                 onClick={() => setDeleteIds([e.uuid])}
                             >
                                 <DeleteIcon fontSize="small" />

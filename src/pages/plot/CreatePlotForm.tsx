@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import {
-    Box, Card, CardContent, Typography,
+    Box, Card, CardContent, InputAdornment, Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -15,6 +15,7 @@ type FormValues = {
     categoryId: string;
     startPlotNo: string;
     endPlotNo: string;
+    price: string;
 };
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
         categoryUuid: string;
         startPlotNo: number;
         endPlotNo?: number;
+        price: number;
     }) => void;
     btnLabel: string;
     loading: boolean;
@@ -34,6 +36,9 @@ const MAX_PLOTS_PER_REQUEST = 1_000;
 
 function CreatePlotForm({ callback, btnLabel, loading }: Props) {
     const adminContext: any = useContext(AdminContext);
+    const currencyCode = adminContext.projects?.find(
+        (project: any) => project.uuid === adminContext.projectUuid
+    )?.currencyCode || '';
     const { control, handleSubmit, getValues } = useForm<FormValues>({
         mode: 'onChange',
         defaultValues: {
@@ -41,6 +46,7 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             categoryId: '',
             startPlotNo: '',
             endPlotNo: '',
+            price: '',
         },
     });
 
@@ -52,6 +58,7 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             categoryUuid: formData.categoryId,
             startPlotNo: Number(formData.startPlotNo),
             ...(endPlotNo === undefined ? {} : { endPlotNo }),
+            price: Number(formData.price),
         });
     };
 
@@ -118,6 +125,37 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
                                         value={field.value}
                                         label="End Plot No. (optional)"
                                         params={{ inputProps: { step: '1', min: '1', max: MAX_PLOT_NO } }}
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="price"
+                                control={control}
+                                rules={{
+                                    required: { value: true, message: 'Price is required' },
+                                    validate: (value) => {
+                                        const price = Number(value);
+                                        return Number.isInteger(price) && price > 0
+                                            ? true
+                                            : 'Enter a whole number greater than 0';
+                                    },
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <FormInput
+                                        fullWidth
+                                        type="number"
+                                        error={error}
+                                        field={field}
+                                        value={field.value}
+                                        label="Price"
+                                        params={{ inputProps: { step: '1', min: '1' } }}
+                                        InputProps={currencyCode ? {
+                                            startAdornment: (
+                                                <InputAdornment position="start">{currencyCode}</InputAdornment>
+                                            ),
+                                        } : undefined}
                                     />
                                 )}
                             />

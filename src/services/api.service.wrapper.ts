@@ -70,6 +70,33 @@ export const POST = async (url, data = null, config = {}) => {
     }
 };
 
+export const PUT = async (url, data = null, config = {}) => {
+    if (constants.FAKE_RESPONSE) return getFakeResponse(url);
+    try {
+        const res = await api.put(url, data, { ...config, withCredentials: true } as AxiosRequestConfig);
+        return res?.data;
+    } catch (e) {
+        if (e?.response?.status === 401) {
+            try {
+                const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
+                if (refreshRes?.data.status) {
+                    SetToken(refreshRes?.data.data.token);
+                    const retryRes = await api.put(url, data, { ...config, withCredentials: true } as AxiosRequestConfig);
+                    return retryRes?.data;
+                }
+            } catch (refreshError) {
+                if (refreshError?.response?.status === 401) {
+                    await EmptyLocalStorage();
+                    window.location.href = constants.APP_URL;
+                }
+                throw refreshError;
+            }
+        }
+        if (e?.response?.data) return e.response.data;
+        throw e;
+    }
+};
+
 export const GET = async (url, params = {}, config = {}) => {
     if (constants.FAKE_RESPONSE) return getFakeResponse(url);
     try {
@@ -130,5 +157,4 @@ export const DELETE = async (url, params = {}, config = {}) => {
         if (e?.response?.data) return e.response.data;
     }
 };
-
 

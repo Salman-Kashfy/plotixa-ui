@@ -1,5 +1,5 @@
 import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
-import { GET, POST, DELETE } from './api.service.wrapper';
+import { GET, POST, PUT, DELETE } from './api.service.wrapper';
 
 // ─── Blocks ───────────────────────────────────────────────────────────────────
 
@@ -63,6 +63,7 @@ export type CreatePlotPayload = {
     categoryUuid: string;
     startPlotNo: number;
     endPlotNo?: number;
+    price: number;
 };
 
 export const CreatePlot = async (data: CreatePlotPayload) => {
@@ -80,7 +81,9 @@ export type UpdatePlotPayload = {
 };
 
 export const UpdatePlot = async (uuid: string, data: UpdatePlotPayload) => {
-    const response: any = await POST(`${apiUrl.plots}/${uuid}`, data as any);
+    const response: any = await PUT(`${apiUrl.plots}/${uuid}`, data, {
+        headers: { 'Content-Type': 'application/json' },
+    });
     return response || emptyMutationResponse;
 };
 

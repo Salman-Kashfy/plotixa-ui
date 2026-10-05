@@ -24,6 +24,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
     const defaultValues = {
         blockId: '',
         categoryId: '',
+        plotNo: '',
         price: '',
     };
 
@@ -32,6 +33,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
             blockId: data.block?.uuid || '',
             categoryId: data.category?.uuid || '',
+            plotNo: data.plotNo ?? '',
             price: data.price || '',
         },
     });
@@ -41,6 +43,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
             reset({
                 blockId: data.block?.uuid || '',
                 categoryId: data.category?.uuid || '',
+                plotNo: data.plotNo ?? '',
                 price: data.price || '',
             });
         }
@@ -51,6 +54,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
             projectUuid: adminContext.projectUuid,
             blockUuid: formData.blockId,
             categoryUuid: formData.categoryId,
+            plotNo: Number(formData.plotNo),
             price: Number(formData.price),
         };
         callback(_data);
@@ -66,6 +70,33 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
 
                         <PlotLocationFields control={control} />
 
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="plotNo"
+                                control={control}
+                                rules={{
+                                    required: { value: true, message: 'Plot number is required' },
+                                    validate: (value) => {
+                                        const plotNo = Number(value);
+                                        return Number.isInteger(plotNo) && plotNo >= 1 && plotNo <= 1_000_000
+                                            ? true
+                                            : 'Enter a whole number from 1 to 1,000,000';
+                                    },
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <FormInput
+                                        fullWidth
+                                        type="number"
+                                        error={error}
+                                        field={field}
+                                        value={field.value}
+                                        label="Plot No."
+                                        params={{ inputProps: { step: '1', min: '1', max: '1000000' } }}
+                                    />
+                                )}
+                            />
+                        </Grid>
+
                         {/* Price */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
@@ -73,7 +104,13 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
                                 control={control}
                                 rules={{
                                     required: { value: true, message: 'Price is required' },
-                                    min: { value: 1, message: 'Price must be greater than 0' },
+                                    validate: (value) => {
+                                        const price = Number(value);
+                                        return Number.isFinite(price) && price >= 0 &&
+                                            Number.isInteger(price)
+                                            ? true
+                                            : 'Enter a non-negative whole number';
+                                    },
                                 }}
                                 render={({ field, fieldState: { error } }) => (
                                     <FormInput
@@ -83,7 +120,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
                                         field={field}
                                         value={field.value}
                                         label="Price"
-                                        inputProps={{ step: '1', min: '1' }}
+                                        params={{ inputProps: { step: '1', min: '0' } }}
                                         InputProps={currencyCode ? {
                                             startAdornment: (
                                                 <InputAdornment position="start">{currencyCode}</InputAdornment>
