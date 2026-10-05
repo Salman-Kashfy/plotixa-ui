@@ -127,9 +127,7 @@ export const DELETE = async (url, params = {}, config = {}) => {
                 }
             }
         }
-        if (e?.response.status === 409){
-            return e.response.data
-        }
+        if (e?.response?.data) return e.response.data;
     }
 };
 

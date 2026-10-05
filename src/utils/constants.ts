@@ -448,7 +448,8 @@ export const PERMISSIONS = {
     },
     PLOT: {
         LIST: 'plot:view',
-        UPSERT: 'plot:upsert',
+        CREATE: 'plot:create',
+        UPDATE: 'plot:update',
         DELETE: 'plot:delete',
     },
     BLOCK: {

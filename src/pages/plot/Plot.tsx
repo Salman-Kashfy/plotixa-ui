@@ -3,7 +3,7 @@ import {
     Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
-    IconButton, FormControl, InputLabel, Select, MenuItem, Chip,
+    IconButton, FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, Button,
     useTheme, useMediaQuery,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -15,7 +15,8 @@ import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, constants, PERMISSIONS, PLOT_STATUS, PLOT_STATUS_COLOR } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetPlots, DeletePlot, GetBlocks, GetPlotCategories } from '../../services/plot.service';
+import { GetPlots, DeletePlots, GetBlocks, GetPlotCategories } from '../../services/plot.service';
+import AppDialog from '../../components/AppDialog';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -36,14 +37,19 @@ function Plot() {
     const [blockId, setBlockId] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [status, setStatus] = useState('');
+    const [selected, setSelected] = useState<string[]>([]);
+    const [deleteIds, setDeleteIds] = useState<string[]>([]);
+    const [deleting, setDeleting] = useState(false);
+    const canDelete = hasPermission(PERMISSIONS.PLOT.DELETE);
 
     const btn = {
         to: ROUTES.PLOT.CREATE,
         label: 'Add Plot',
-        show: hasPermission(PERMISSIONS.PLOT.UPSERT),
+        show: hasPermission(PERMISSIONS.PLOT.CREATE),
     };
 
     const columns = [
+        ...(canDelete ? [{ id: 'select', label: '', minWidth: 48 }] : []),
         { id: 'plot',     label: 'Plot',     minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 160 },
         { id: 'status',   label: 'Status',   minWidth: 120 },
@@ -56,19 +62,46 @@ function Plot() {
     const handleCategoryChange = (value: string) => { setCategoryId(value); setPage(0); };
     const handleStatusChange = (value: string) => { setStatus(value); setPage(0); };
 
-    const handleDelete = (id: string) => {
-        DeletePlot(id).then((res) => {
+    const handleDelete = () => {
+        setDeleting(true);
+        DeletePlots(deleteIds, adminContext.projectUuid).then((res) => {
+            setDeleting(false);
             if (res.status) {
+                const count = deleteIds.length;
+                setDeleteIds([]);
                 toastContext.setToastSeverity('success');
-                toastContext.setToastMessage('Plot deleted.');
+                toastContext.setToastMessage(`${count} plot${count === 1 ? '' : 's'} deleted.`);
                 toastContext.setToast(true);
                 fetchRows();
+            } else {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage(res.message || 'Unable to delete plots.');
+                toastContext.setToast(true);
             }
-        });
+        }).catch(() => setDeleting(false));
     };
+
+    const deletableIds = rows.filter((r) => r.deletable).map((r) => r.id);
+    const allSelected = !!deletableIds.length && deletableIds.every((id) => selected.includes(id));
+    const toggleSelected = (id: string) =>
+        setSelected((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    const toggleAll = () => setSelected(allSelected ? [] : deletableIds);
+
+    const renderRow = (row: any) => ({
+        ...row,
+        select: (
+            <Checkbox
+                size="small"
+                disabled={!row.deletable}
+                checked={selected.includes(row.id)}
+                onChange={() => toggleSelected(row.id)}
+            />
+        ),
+    });
 
     const fetchRows = () => {
         if (!loading) setLoading(true);
+        setSelected([]);
         const params: any = { projectUuid: adminContext.projectUuid };
         if (blockId) params.blockUuid = blockId;
         if (categoryId) params.categoryUuid = categoryId;
@@ -77,6 +110,7 @@ function Plot() {
             const list = response.list || [];
             setRows(list.map((e: any) => ({
                 id: e.uuid,
+                deletable: e.status === PLOT_STATUS.ACTIVE,
                 plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
                 status: (
@@ -93,8 +127,13 @@ function Plot() {
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>
                         )}
-                        {hasPermission(PERMISSIONS.PLOT.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.uuid)}>
+                        {canDelete && (
+                            <IconButton
+                                color="error"
+                                size="small"
+                                disabled={e.status !== PLOT_STATUS.ACTIVE}
+                                onClick={() => setDeleteIds([e.uuid])}
+                            >
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         )}
@@ -161,11 +200,24 @@ function Plot() {
             <Card>
                 <CardContent sx={{ p: 3 }}>
                     <Box>
+                        {canDelete && selected.length > 0 && (
+                            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    size="small"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => setDeleteIds(selected)}
+                                >
+                                    Delete selected ({selected.length})
+                                </Button>
+                            </Box>
+                        )}
                         {isMobile ? (
                             <>
                                 <Stack spacing={2} sx={{ opacity: loading && rows.length ? 0.5 : 1 }}>
                                     {rows.map((row) => (
-                                        <ListingCard key={row.id} row={row} columns={columns} />
+                                        <ListingCard key={row.id} row={renderRow(row)} columns={columns} />
                                     ))}
                                 </Stack>
                                 {loading && !rows.length ? (
@@ -186,19 +238,30 @@ function Plot() {
                                         <TableRow>
                                             {columns.map((col) => (
                                                 <TableCell key={col.id} style={{ minWidth: col.minWidth }}>
-                                                    {col.label}
+                                                    {col.id === 'select' ? (
+                                                        <Checkbox
+                                                            size="small"
+                                                            checked={allSelected}
+                                                            indeterminate={!allSelected && selected.length > 0}
+                                                            disabled={!deletableIds.length}
+                                                            onChange={toggleAll}
+                                                        />
+                                                    ) : col.label}
                                                 </TableCell>
                                             ))}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {rows.map((row) => (
-                                            <TableRow hover key={row.id} sx={{ opacity: loading ? 0.2 : 1 }}>
-                                                {columns.map((col) => (
-                                                    <TableCell key={col.id}>{row[col.id]}</TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))}
+                                        {rows.map((row) => {
+                                            const cells = renderRow(row);
+                                            return (
+                                                <TableRow hover key={row.id} sx={{ opacity: loading ? 0.2 : 1 }}>
+                                                    {columns.map((col) => (
+                                                        <TableCell key={col.id}>{cells[col.id]}</TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            );
+                                        })}
                                         <TableSpinner loading={loading} colSpan={columns.length} rowCount={rows.length} />
                                         <NoRowsFound loading={loading} colSpan={columns.length} rowCount={rows.length} />
                                     </TableBody>
@@ -221,6 +284,15 @@ function Plot() {
                     </Box>
                 </CardContent>
             </Card>
+            <AppDialog
+                open={!!deleteIds.length}
+                handleDialogClose={() => setDeleteIds([])}
+                title="Delete Plots"
+                body={`Are you sure you want to delete ${deleteIds.length} plot${deleteIds.length === 1 ? '' : 's'}? This cannot be undone.`}
+                dialogBtnLoading={deleting}
+                dialogBtnLabel="Delete"
+                onSubmit={handleDelete}
+            />
         </>
     );
 }
