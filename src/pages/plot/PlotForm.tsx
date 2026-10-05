@@ -22,7 +22,6 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
         (p: any) => p.uuid === adminContext.projectUuid
     )?.currencyCode || '';
     const defaultValues = {
-        id: '',
         blockId: '',
         categoryId: '',
         price: '',
@@ -31,8 +30,8 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
     const { control, handleSubmit, reset } = useForm({
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            blockId: data.block?.uuid,
-            categoryId: data.category?.uuid,
+            blockId: data.block?.uuid || '',
+            categoryId: data.category?.uuid || '',
             price: data.price || '',
         },
     });
@@ -40,9 +39,8 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
     useEffect(() => {
         if (Object.keys(data).length) {
             reset({
-                id: data.id || '',
-                blockId: data.block?.uuid,
-                categoryId: data.category?.uuid,
+                blockId: data.block?.uuid || '',
+                categoryId: data.category?.uuid || '',
                 price: data.price || '',
             });
         }
@@ -50,11 +48,11 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
 
     const onSubmit = (formData: any) => {
         const _data: any = {
-            blockId: formData.blockId,
-            categoryId: formData.categoryId,
+            projectUuid: adminContext.projectUuid,
+            blockUuid: formData.blockId,
+            categoryUuid: formData.categoryId,
             price: Number(formData.price),
         };
-        if (formData.id) _data.id = formData.id;
         callback(_data);
     };
 

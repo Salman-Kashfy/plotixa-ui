@@ -52,8 +52,8 @@ export const GetPlots = async (
         : { list: [], pagination: { page: 1, perPage: limit, total: 0, totalPages: 0 } };
 };
 
-export const GetPlot = async (id: string) => {
-    const response: any = await GET(`${apiUrl.plots}/${id}`);
+export const GetPlot = async (uuid: string, projectUuid: string) => {
+    const response: any = await GET(`${apiUrl.plots}/${uuid}`, { projectUuid });
     return response?.status ? response.data : {};
 };
 
@@ -72,8 +72,15 @@ export const CreatePlot = async (data: CreatePlotPayload) => {
     return response || emptyMutationResponse;
 };
 
-export const UpdatePlot = async (id: string, data: { blockId: string; categoryId: string }) => {
-    const response: any = await POST(`${apiUrl.plots}/${id}`, data as any);
+export type UpdatePlotPayload = {
+    projectUuid: string;
+    blockUuid: string;
+    categoryUuid: string;
+    price: number;
+};
+
+export const UpdatePlot = async (uuid: string, data: UpdatePlotPayload) => {
+    const response: any = await POST(`${apiUrl.plots}/${uuid}`, data as any);
     return response || emptyMutationResponse;
 };
 
