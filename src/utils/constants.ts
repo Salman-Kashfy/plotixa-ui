@@ -243,12 +243,6 @@ export const ROUTES = {
         EDIT: ((id = null) => '/lead/'+(id || ':id')+'/edit'),
         VIEW: ((id = null) => '/lead/'+(id || ':id')),
     },
-    CUSTOMER: {
-        LIST: '/customers',
-        CREATE: '/customer/create',
-        EDIT: ((id = null) => '/customer/'+(id || ':id')+'/edit'),
-        VIEW: ((id = null) => '/customer/'+(id || ':id')),
-    },
     INSTRUCTOR: {
         LIST: '/instructors',
         CREATE: '/instructor/create',
@@ -333,7 +327,8 @@ export const ROUTES = {
     CUSTOMER: {
         LIST: '/customers',
         CREATE: '/customer/create',
-        EDIT: ((id = null) => '/customer/' + (id || ':id') + '/edit'),
+        EDIT: ((uuid: string | null = null) => '/customer/' + (uuid || ':uuid') + '/edit'),
+        VIEW: ((uuid: string | null = null) => '/customer/' + (uuid || ':uuid')),
     },
     TOKEN: {
         LIST: '/tokens',

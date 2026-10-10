@@ -1,7 +1,7 @@
 import {api} from './api.service'
 import {constants, apiUrl, ERROR_CODES, ROUTES} from "../utils/constants";
 import {first,isEmpty,isArray} from "lodash";
-import {AxiosRequestConfig} from "axios";
+import {isAxiosError, type AxiosRequestConfig} from "axios";
 import {EmptyLocalStorage, SetToken} from "./auth/auth.service";
 
 const fakeResponses = import.meta.glob('../../responses/*.json');
@@ -23,7 +23,7 @@ export const SetBaseUrl = () => {
     return constants.API_URL;
 }
 
-export const POST = async (url, data = null, config = {}) => {
+export const POST = async (url: string, data: unknown = null, config: AxiosRequestConfig = {}) => {
     if (constants.FAKE_RESPONSE) return getFakeResponse(url);
     try {
         const res = await api.post(url, data, { ...config, withCredentials: true } as AxiosRequestConfig);
@@ -97,7 +97,7 @@ export const PUT = async (url, data = null, config = {}) => {
     }
 };
 
-export const GET = async (url, params = {}, config = {}) => {
+export const GET = async (url: string, params: Record<string, unknown> = {}, config: AxiosRequestConfig = {}) => {
     if (constants.FAKE_RESPONSE) return getFakeResponse(url);
     try {
         const res = await api.get(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
@@ -110,8 +110,8 @@ export const GET = async (url, params = {}, config = {}) => {
             }
         }
         return res?.data;
-    } catch (e) {
-        if (e?.response.status === 401) {
+    } catch (error) {
+        if (isAxiosError(error) && error.response?.status === 401) {
             try {
                 const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
                 if (refreshRes?.data.status) {
@@ -119,25 +119,27 @@ export const GET = async (url, params = {}, config = {}) => {
                     const res = await api.get(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
                     return res?.data;
                 }
-            } catch (e) {
-                if(e?.response?.status === 401){
+            } catch (refreshError) {
+                if(isAxiosError(refreshError) && refreshError.response?.status === 401){
                     await EmptyLocalStorage()
                     window.location.href = constants.APP_URL
                 }else{
-                    console.log(e);
+                    console.log(refreshError);
                 }
             }
         }
+        if (isAxiosError(error) && error.response?.data) return error.response.data;
+        throw error;
     }
 };
 
-export const DELETE = async (url, params = {}, config = {}) => {
+export const DELETE = async (url: string, params: Record<string, unknown> = {}, config: AxiosRequestConfig = {}) => {
     if (constants.FAKE_RESPONSE) return getFakeResponse(url);
     try {
         const res = await api.delete(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
         return res?.data;
-    } catch (e) {
-        if (e?.response.status === 401) {
+    } catch (error) {
+        if (isAxiosError(error) && error.response?.status === 401) {
             try {
                 const refreshRes = await api.post(SetBaseUrl() + apiUrl.refreshToken, {}, { ...config, withCredentials: true } as AxiosRequestConfig);
                 if (refreshRes?.data.status) {
@@ -145,16 +147,16 @@ export const DELETE = async (url, params = {}, config = {}) => {
                     const res = await api.delete(url, { ...config, withCredentials: true, params } as AxiosRequestConfig);
                     return res?.data;
                 }
-            } catch (e) {
-                if(e?.response?.status === 401){
+            } catch (refreshError) {
+                if(isAxiosError(refreshError) && refreshError.response?.status === 401){
                     await EmptyLocalStorage()
                     window.location.href = constants.APP_URL
                 }else{
-                    console.log(e);
+                    throw refreshError;
                 }
             }
         }
-        if (e?.response?.data) return e.response.data;
+        if (isAxiosError(error) && error.response?.data) return error.response.data;
+        throw error;
     }
 };
-

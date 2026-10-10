@@ -64,12 +64,19 @@ function Token() {
 
     const searchCustomers = useCallback((search: string) => {
         if (!search.trim()) { setCustomerOptions([]); return; }
+        if (!adminContext.projectUuid) { setCustomerOptions([]); return; }
         setCustomerLoading(true);
-        GetCustomers({ page: 1, limit: 20 }, { searchText: search }).then((res) => {
-            setCustomerOptions(res.data || []);
+        GetCustomers({ page: 1, perPage: 20 }, adminContext.projectUuid).then((res) => {
+            setCustomerOptions((res.data?.list || []).map((customer) => ({
+                ...customer,
+                id: customer.uuid,
+                name: `${customer.firstName} ${customer.lastName}`.trim(),
+            })).filter((customer) =>
+                `${customer.name} ${customer.phoneCode}${customer.phoneNumber}`.toLowerCase().includes(search.toLowerCase()),
+            ));
             setCustomerLoading(false);
         }).catch(() => setCustomerLoading(false));
-    }, []);
+    }, [adminContext.projectUuid]);
 
     useEffect(() => {
         const timer = setTimeout(() => searchCustomers(customerInput), 400);

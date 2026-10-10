@@ -1,27 +1,74 @@
-import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
-import { GET, POST } from './api.service.wrapper';
+import { apiUrl, constants, emptyMutationResponse } from '../utils/constants';
+import { DELETE, GET, POST } from './api.service.wrapper';
 
-export const GetCustomers = async ({ page = 1, limit = constants.PER_PAGE }, params = {}) => {
-    const response: any = await GET(apiUrl.customers, { page, limit, ...params });
-    return response?.status ? response : emptyListResponse;
+export type Customer = {
+    uuid: string;
+    firstName: string;
+    lastName: string;
+    phoneCode: string;
+    phoneNumber: string;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
-export const GetCustomer = async (id: string) => {
-    const response: any = await GET(`${apiUrl.customers}/${id}`);
-    return response?.status ? response.data : {};
+export type CustomerFields = {
+    uuid?: string;
+    firstName: string;
+    lastName: string;
+    phoneCode: string;
+    phoneNumber: string;
 };
 
-export const CreateCustomer = async (data: { name: string; phoneCode: string; phoneNumber: string }) => {
-    const response: any = await POST(apiUrl.customers, data as any);
+export type CustomerUpsertPayload = CustomerFields & {
+    projectUuid: string;
+};
+
+export type CustomerListResponse = {
+    status: boolean;
+    data?: {
+        list: Customer[];
+        pagination: {
+            page: number;
+            perPage: number;
+            total: number;
+            totalPages: number;
+        };
+    };
+    errorMessage?: string;
+    message?: string;
+};
+
+export const GetCustomers = async (
+    paging: { page?: number; perPage?: number; limit?: number } = {},
+    projectUuid: string,
+    filters: { phone?: string } = {},
+): Promise<CustomerListResponse> => {
+    const { page = 1 } = paging;
+    const perPage = paging.perPage ?? paging.limit ?? constants.PER_PAGE;
+    const params: Record<string, string | number> = { projectUuid, page, perPage };
+    if (filters.phone) params.phone = filters.phone;
+    const response: CustomerListResponse | undefined = await GET(apiUrl.customers, params);
+    return response || {
+        status: false,
+        errorMessage: 'Unable to load customers. Please try again.',
+    };
+};
+
+export const GetCustomer = async (uuid: string, projectUuid: string) => {
+    const response: { status: boolean; data?: Customer; errorMessage?: string; message?: string } | undefined =
+        await GET(`${apiUrl.customers}/${encodeURIComponent(uuid)}`, { projectUuid });
+    return response || {
+        status: false,
+        errorMessage: 'Unable to load customer details. Please try again.',
+    };
+};
+
+export const UpsertCustomer = async (data: CustomerUpsertPayload) => {
+    const response: any = await POST(apiUrl.customers, data);
     return response || emptyMutationResponse;
 };
 
-export const UpdateCustomer = async (id: string, data: { name: string; phoneCode: string; phoneNumber: string }) => {
-    const response: any = await POST(`${apiUrl.customers}/${id}`, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const DeleteCustomer = async (id: string) => {
-    const response: any = await POST(`${apiUrl.customers}/${id}/delete`);
+export const DeleteCustomer = async (uuid: string, projectUuid: string) => {
+    const response: any = await DELETE(`${apiUrl.customers}/${encodeURIComponent(uuid)}`, { projectUuid });
     return response || emptyMutationResponse;
 };

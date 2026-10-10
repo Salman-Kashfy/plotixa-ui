@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, type FormEvent } from 'react';
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
-import { numberOnly } from '../../utils/validations';
+import type { Customer, CustomerFields } from '../../services/customer.service';
 
 type Props = {
-    data?: any;
-    callback: (data: any) => void;
+    data?: Partial<Customer>;
+    callback: (data: CustomerFields) => void;
     btnLabel: string;
     loading: boolean;
     formLoader?: boolean;
@@ -17,8 +17,9 @@ type Props = {
 
 function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = false }: Props) {
     const defaultValues = {
-        id: '',
-        name: '',
+        uuid: '',
+        firstName: '',
+        lastName: '',
         phoneCode: '',
         phoneNumber: '',
     };
@@ -26,8 +27,9 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
     const { control, handleSubmit, reset } = useForm({
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            id: data.id || '',
-            name: data.name || '',
+            uuid: data.uuid || '',
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
             phoneCode: data.phoneCode || '',
             phoneNumber: data.phoneNumber || '',
         },
@@ -36,21 +38,23 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
     useEffect(() => {
         if (Object.keys(data).length) {
             reset({
-                id: data.id || '',
-                name: data.name || '',
+                uuid: data.uuid || '',
+                firstName: data.firstName || '',
+                lastName: data.lastName || '',
                 phoneCode: data.phoneCode || '',
                 phoneNumber: data.phoneNumber || '',
             });
         }
     }, [data, reset]);
 
-    const onSubmit = (formData: any) => {
-        const _data: any = {
-            name: formData.name,
+    const onSubmit = (formData: typeof defaultValues) => {
+        const _data: CustomerFields = {
             phoneCode: formData.phoneCode,
             phoneNumber: formData.phoneNumber,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
         };
-        if (formData.id) _data.id = formData.id;
+        if (formData.uuid) _data.uuid = formData.uuid;
         callback(_data);
     };
 
@@ -65,11 +69,11 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
                         {/* Name */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
-                                name="name"
+                                name="firstName"
                                 control={control}
                                 rules={{
                                     required: { value: true, message: 'Name is required' },
-                                    maxLength: { value: 100, message: 'Name must not exceed 100 characters' },
+                                    maxLength: { value: 100, message: 'First name must not exceed 100 characters' },
                                 }}
                                 render={({ field, fieldState: { error } }) => (
                                     <FormInput
@@ -77,7 +81,26 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
                                         error={error}
                                         field={field}
                                         value={field.value}
-                                        label="Name"
+                                        label="First Name"
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="lastName"
+                                control={control}
+                                rules={{
+                                    required: { value: true, message: 'Last name is required' },
+                                    maxLength: { value: 100, message: 'Last name must not exceed 100 characters' },
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <FormInput
+                                        fullWidth
+                                        error={error}
+                                        field={field}
+                                        value={field.value}
+                                        label="Last Name"
                                     />
                                 )}
                             />
@@ -100,7 +123,12 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
                                             value={field.value}
                                             label="Code"
                                             sx={{ width: 90, flexShrink: 0 }}
-                                            onInput={(e) => numberOnly(e, 5, false)}
+                                            onInput={(e: FormEvent<HTMLInputElement>) => {
+                                                e.currentTarget.value = e.currentTarget.value
+                                                    .replace(/[^\d+]/g, '')
+                                                    .replace(/(?!^)\+/g, '')
+                                                    .slice(0, 5);
+                                            }}
                                         />
                                     )}
                                 />
@@ -118,7 +146,9 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
                                             field={field}
                                             value={field.value}
                                             label="Phone Number"
-                                            onInput={(e) => numberOnly(e, 15, false)}
+                                            onInput={(e: FormEvent<HTMLInputElement>) => {
+                                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 15);
+                                            }}
                                         />
                                     )}
                                 />
@@ -133,8 +163,8 @@ function CustomerForm({ data = {}, callback, btnLabel, loading, formLoader = fal
                 <LoadingButton
                     variant="contained"
                     type="submit"
-                    loading={loading}
-                    disabled={loading}
+                    loading={loading || formLoader}
+                    disabled={loading || formLoader}
                     sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                     {btnLabel}
