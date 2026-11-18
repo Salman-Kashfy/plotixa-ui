@@ -1,46 +1,5 @@
-import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
+import { apiUrl, constants, emptyMutationResponse } from '../utils/constants';
 import { GET, POST, PUT, DELETE } from './api.service.wrapper';
-
-// ─── Blocks ───────────────────────────────────────────────────────────────────
-
-export const GetBlocks = async (params: { projectUuid: string; [key: string]: any }) => {
-    const response: any = await GET(apiUrl.blocks, params);
-    return response?.status ? response.data : [];
-};
-
-export const UpsertBlock = async (data: { name: string; projectUuid: string; uuid?: string }) => {
-    const response: any = await POST(apiUrl.blocks, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const DeletePlotBlock = async (id: string) => {
-    const response: any = await POST(`${apiUrl.plotBlocks}/${id}/delete`);
-    return response || emptyMutationResponse;
-};
-
-// ─── Plot Categories ──────────────────────────────────────────────────────────
-
-export const GetPlotCategories = async (params: { projectUuid?: string } = {}) => {
-    const response: any = await GET(apiUrl.plotCategories, params);
-    return response?.status ? response.data : [];
-};
-
-export const CreatePlotCategory = async (data: { name: string; projectUuid: string }) => {
-    const response: any = await POST(apiUrl.plotCategories, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const UpdatePlotCategory = async (id: string, data: { name: string; projectUuid: string }) => {
-    const response: any = await POST(`${apiUrl.plotCategories}/${id}`, data as any);
-    return response || emptyMutationResponse;
-};
-
-export const DeletePlotCategory = async (id: string) => {
-    const response: any = await POST(`${apiUrl.plotCategories}/${id}/delete`);
-    return response || emptyMutationResponse;
-};
-
-// ─── Plots ────────────────────────────────────────────────────────────────────
 
 export const GetPlots = async (
     { page = 1, limit = constants.PER_PAGE },
@@ -64,6 +23,7 @@ export type CreatePlotPayload = {
     startPlotNo: number;
     endPlotNo?: number;
     price: number;
+    area: number;
 };
 
 export const CreatePlot = async (data: CreatePlotPayload) => {
@@ -78,6 +38,7 @@ export type UpdatePlotPayload = {
     blockUuid: string;
     categoryUuid: string;
     price: number;
+    area: number;
 };
 
 export const UpdatePlot = async (uuid: string, data: UpdatePlotPayload) => {

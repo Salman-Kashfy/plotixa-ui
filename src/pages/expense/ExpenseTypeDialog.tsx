@@ -10,7 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { GetExpenseTypes, UpsertExpenseType, DeleteExpenseType } from '../../services/expense.service';
+import { GetExpenseTypes, UpsertExpenseType, DeleteExpenseType } from '../../services/expense-type.service';
 import { constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { ToastContext } from '../../hooks/ToastContext';

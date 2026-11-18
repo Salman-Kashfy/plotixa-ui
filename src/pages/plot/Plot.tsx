@@ -15,7 +15,9 @@ import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, constants, PERMISSIONS, PLOT_STATUS, PLOT_STATUS_COLOR } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetPlots, DeletePlots, GetBlocks, GetPlotCategories } from '../../services/plot.service';
+import { GetPlots, DeletePlots } from '../../services/plot.service';
+import { GetBlocks } from '../../services/block.service';
+import { GetCategories } from '../../services/category.service';
 import AppDialog from '../../components/AppDialog';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
@@ -55,6 +57,7 @@ function Plot() {
         ...(canDelete ? [{ id: 'select', label: '', minWidth: 48 }] : []),
         { id: 'plot',     label: 'Plot',     minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 160 },
+        { id: 'area',     label: 'Area',     minWidth: 100 },
         { id: 'price',    label: 'Price',    minWidth: 140 },
         { id: 'status',   label: 'Status',   minWidth: 120 },
         { id: 'actions',  label: 'Actions',  minWidth: 100 },
@@ -117,6 +120,7 @@ function Plot() {
                 deletable: e.status === PLOT_STATUS.ACTIVE,
                 plot: `${e.block?.name || ''}-${e.plotNo}`,
                 category: e.category?.name || '—',
+                area: e.area ?? '—',
                 price: Number.isFinite(Number(e.price))
                     ? `${currencyCode ? `${currencyCode} ` : ''}${Number(e.price).toLocaleString(undefined, {
                         maximumFractionDigits: 0,
@@ -156,7 +160,7 @@ function Plot() {
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([{ name: 'Plots' }]);
         GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
-        GetPlotCategories({ projectUuid: adminContext.projectUuid }).then(setCategories);
+        GetCategories({ projectUuid: adminContext.projectUuid }).then(setCategories);
     }, []);
 
     useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status, adminContext.projectUuid]);

@@ -14,7 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
-import { GetExpenseTypes } from '../../services/expense.service';
+import { GetExpenseTypes } from '../../services/expense-type.service';
 import { hasPermission } from '../../utils/permissions';
 import { PERMISSIONS } from '../../utils/constants';
 import ExpenseTypeDialog from './ExpenseTypeDialog';

@@ -11,7 +11,8 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
-import { GetPlots, GetPlotCategories } from '../../services/plot.service';
+import { GetPlots } from '../../services/plot.service';
+import { GetCategories } from '../../services/category.service';
 import { AdminContext } from '../../hooks/AdminContext';
 import { TENURE_OPTIONS } from '../../utils/constants';
 
@@ -117,7 +118,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     // Fetch categories on mount
     useEffect(() => {
-        GetPlotCategories().then(setCategories);
+        GetCategories().then(setCategories);
     }, []);
 
     // Fetch plots when category changes

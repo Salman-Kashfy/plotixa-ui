@@ -6,6 +6,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
+import PlotAreaField from './PlotAreaField';
 import PlotLocationFields from './PlotLocationFields';
 
 type Props = {
@@ -26,6 +27,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
         categoryId: '',
         plotNo: '',
         price: '',
+        area: '',
     };
 
     const { control, handleSubmit, reset } = useForm({
@@ -35,6 +37,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
             categoryId: data.category?.uuid || '',
             plotNo: data.plotNo ?? '',
             price: data.price || '',
+            area: data.area == null ? '' : String(data.area),
         },
     });
 
@@ -45,6 +48,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
                 categoryId: data.category?.uuid || '',
                 plotNo: data.plotNo ?? '',
                 price: data.price || '',
+                area: data.area == null ? '' : String(data.area),
             });
         }
     }, [data, reset]);
@@ -56,6 +60,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
             categoryUuid: formData.categoryId,
             plotNo: Number(formData.plotNo),
             price: Number(formData.price),
+            area: Number(formData.area),
         };
         callback(_data);
     };
@@ -69,6 +74,7 @@ function PlotForm({ data = {}, callback, btnLabel, loading, formLoader = false }
                     <Grid container spacing={3}>
 
                         <PlotLocationFields control={control} />
+                        <PlotAreaField control={control} />
 
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller

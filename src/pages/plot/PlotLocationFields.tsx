@@ -9,10 +9,10 @@ import { Control, Controller } from 'react-hook-form';
 import { AdminContext } from '../../hooks/AdminContext';
 import { PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
+import { GetBlocks, UpsertBlock, DeletePlotBlock } from '../../services/block.service';
 import {
-    GetBlocks, UpsertBlock, DeletePlotBlock,
-    GetPlotCategories, CreatePlotCategory, UpdatePlotCategory, DeletePlotCategory,
-} from '../../services/plot.service';
+    GetCategories, CreateCategory, UpdateCategory, DeleteCategory,
+} from '../../services/category.service';
 import CrudOptionDialog, { CrudOption } from './CrudOptionDialog';
 
 type Props = {
@@ -45,7 +45,7 @@ function PlotLocationFields({ control }: Props) {
 
     const fetchCategories = () => {
         setCategoriesLoading(true);
-        GetPlotCategories({ projectUuid: adminContext.projectUuid })
+        GetCategories({ projectUuid: adminContext.projectUuid })
             .then((items) => {
                 setCategories(items);
                 setCategoriesLoading(false);
@@ -142,10 +142,10 @@ function PlotLocationFields({ control }: Props) {
                     canUpdate: hasPermission(PERMISSIONS.CATEGORY.UPSERT),
                     canDelete: hasPermission(PERMISSIONS.CATEGORY.DELETE),
                 }}
-                fetchItems={() => GetPlotCategories({ projectUuid: adminContext.projectUuid })}
-                createItem={({ name }) => CreatePlotCategory({ name, projectUuid: adminContext.projectUuid })}
-                updateItem={(id, { name }) => UpdatePlotCategory(id, { name, projectUuid: adminContext.projectUuid })}
-                deleteItem={DeletePlotCategory}
+                fetchItems={() => GetCategories({ projectUuid: adminContext.projectUuid })}
+                createItem={({ name }) => CreateCategory({ name, projectUuid: adminContext.projectUuid })}
+                updateItem={(id, { name }) => UpdateCategory(id, { name, projectUuid: adminContext.projectUuid })}
+                deleteItem={DeleteCategory}
             />
         </>
     );

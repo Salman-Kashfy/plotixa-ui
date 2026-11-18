@@ -210,7 +210,7 @@ export const apiUrl = {
     plots: '/plots',
     blocks: '/blocks',
     plotBlocks: '/plot-blocks',
-    plotCategories: '/categories',
+    categories: '/categories',
     customers: '/customers',
     tokens: '/tokens',
     bookings: '/bookings',
@@ -572,6 +572,8 @@ export enum GYM_QR_SESSION_STATE {
     OVERTIME_IN = 'Overtime in',
     OVERTIME_OUT = 'Overtime out',
 }
+
+export const PLOT_AREA_OPTIONS = [80, 120, 240];
 
 export enum PLOT_STATUS {
     ACTIVE = 'ACTIVE',

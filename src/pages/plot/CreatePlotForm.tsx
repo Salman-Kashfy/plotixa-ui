@@ -8,6 +8,8 @@ import { Controller, useForm } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
 import { AdminContext } from '../../hooks/AdminContext';
+import type { CreatePlotPayload } from '../../services/plot.service';
+import PlotAreaField from './PlotAreaField';
 import PlotLocationFields from './PlotLocationFields';
 
 type FormValues = {
@@ -16,17 +18,11 @@ type FormValues = {
     startPlotNo: string;
     endPlotNo: string;
     price: string;
+    area: string;
 };
 
 type Props = {
-    callback: (data: {
-        projectUuid: string;
-        blockUuid: string;
-        categoryUuid: string;
-        startPlotNo: number;
-        endPlotNo?: number;
-        price: number;
-    }) => void;
+    callback: (data: CreatePlotPayload) => void;
     btnLabel: string;
     loading: boolean;
 };
@@ -47,6 +43,7 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             startPlotNo: '',
             endPlotNo: '',
             price: '',
+            area: '',
         },
     });
 
@@ -59,6 +56,7 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
             startPlotNo: Number(formData.startPlotNo),
             ...(endPlotNo === undefined ? {} : { endPlotNo }),
             price: Number(formData.price),
+            area: Number(formData.area),
         });
     };
 
@@ -70,6 +68,7 @@ function CreatePlotForm({ callback, btnLabel, loading }: Props) {
                     <Typography variant="h6" sx={{ mb: { xs: 2, sm: 3 } }}>Plot Details</Typography>
                     <Grid container spacing={3}>
                         <PlotLocationFields control={control} />
+                        <PlotAreaField control={control} />
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
                                 name="startPlotNo"

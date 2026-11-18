@@ -15,7 +15,9 @@ import { useForm, Controller } from 'react-hook-form';
 import FormInput from '../../components/FormInput';
 import ProgressBar from '../../components/ProgressBar';
 import { GetCustomers } from '../../services/customer.service';
-import { GetBlocks, GetPlotCategories, GetPlots } from '../../services/plot.service';
+import { GetBlocks } from '../../services/block.service';
+import { GetCategories } from '../../services/category.service';
+import { GetPlots } from '../../services/plot.service';
 import { AdminContext } from '../../hooks/AdminContext';
 
 type Props = {
@@ -101,7 +103,7 @@ function TokenForm({ data = {}, callback, btnLabel, loading, formLoader = false 
     // Fetch blocks and categories on mount
     useEffect(() => {
         GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
-        GetPlotCategories().then(setCategories);
+        GetCategories().then(setCategories);
     }, []);
 
     // Populate existing data on edit
