@@ -19,8 +19,8 @@ function PlotAreaField({ control }: Props) {
                 }}
                 render={({ field, fieldState: { error } }) => (
                     <FormControl variant="standard" fullWidth error={!!error}>
-                        <InputLabel id="plot-area-label">Area</InputLabel>
-                        <Select {...field} labelId="plot-area-label" label="Area">
+                        <InputLabel id="plot-area-label">Area (Sq. yd.)</InputLabel>
+                        <Select {...field} labelId="plot-area-label" label="Area (Sq. yd.)">
                             <MenuItem value=""><em>Select area</em></MenuItem>
                             {field.value && !PLOT_AREA_OPTIONS.includes(Number(field.value)) && (
                                 <MenuItem value={field.value} disabled>{field.value}</MenuItem>
