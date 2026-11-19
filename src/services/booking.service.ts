@@ -6,8 +6,11 @@ export const GetBookings = async ({ page = 1, limit = constants.PER_PAGE }, para
     return response?.status ? response : emptyListResponse;
 };
 
-export const GetBooking = async (id: string) => {
-    const response: any = await GET(`${apiUrl.bookings}/${id}`);
+export const GetBooking = async (id: string, projectUuid?: string) => {
+    const response: any = await GET(
+        `${apiUrl.bookings}/${encodeURIComponent(id)}`,
+        projectUuid ? { projectUuid } : {},
+    );
     return response?.status ? response.data : {};
 };
 

@@ -1,23 +1,16 @@
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import {
     Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
-    IconButton, Chip, FormControl, InputLabel, Select, MenuItem, TextField,
+    Chip, FormControl, InputLabel, Select, MenuItem,
     useTheme, useMediaQuery,
 } from '@mui/material';
-import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid2';
-import { NavLink } from 'react-router-dom';
-import ModeEditIcon from '@mui/icons-material/ModeEdit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
-import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
-import { ROUTES, constants, PERMISSIONS, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
-import { hasPermission } from '../../utils/permissions';
-import { GetTokens, DeleteToken } from '../../services/token.service';
-import { GetCustomers } from '../../services/customer.service';
+import { constants, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
+import { GetTokens, type TokenStatus } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -27,8 +20,8 @@ function Token() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const breadcrumbContext: any = useContext(BreadcrumbContext);
-    const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
+    const projectUuid = adminContext.projectUuid || '';
     const currencyCode = adminContext.projects?.find(
         (p: any) => p.uuid === adminContext.projectUuid
     )?.currencyCode || '';
@@ -39,74 +32,36 @@ function Token() {
     const [rows, setRows] = useState<any[]>([]);
 
     // Filters
-    const [status, setStatus] = useState('');
-    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-    const [customerOptions, setCustomerOptions] = useState<any[]>([]);
-    const [customerLoading, setCustomerLoading] = useState(false);
-    const [customerInput, setCustomerInput] = useState('');
-
-    const btn = {
-        to: ROUTES.TOKEN.CREATE,
-        label: 'Add Token',
-        show: hasPermission(PERMISSIONS.TOKEN.CREATE),
-    };
+    const [status, setStatus] = useState<TokenStatus | ''>('');
 
     const columns = [
         { id: 'customer',  label: 'Customer',  minWidth: 160 },
-        { id: 'phone',     label: 'Phone',      minWidth: 140 },
         { id: 'plot',      label: 'Plot',       minWidth: 120 },
         { id: 'amount',    label: 'Amount',     minWidth: 120 },
         { id: 'status',    label: 'Status',     minWidth: 110 },
-        { id: 'actions',   label: 'Actions',    minWidth: 100 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
 
-    const searchCustomers = useCallback((search: string) => {
-        if (!search.trim()) { setCustomerOptions([]); return; }
-        if (!adminContext.projectUuid) { setCustomerOptions([]); return; }
-        setCustomerLoading(true);
-        GetCustomers({ page: 1, perPage: 20 }, adminContext.projectUuid).then((res) => {
-            setCustomerOptions((res.data?.list || []).map((customer) => ({
-                ...customer,
-                id: customer.uuid,
-                name: `${customer.firstName} ${customer.lastName}`.trim(),
-            })).filter((customer) =>
-                `${customer.name} ${customer.phoneCode}${customer.phoneNumber}`.toLowerCase().includes(search.toLowerCase()),
-            ));
-            setCustomerLoading(false);
-        }).catch(() => setCustomerLoading(false));
-    }, [adminContext.projectUuid]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => searchCustomers(customerInput), 400);
-        return () => clearTimeout(timer);
-    }, [customerInput, searchCustomers]);
-
-    const handleDelete = (id: string) => {
-        DeleteToken(id).then((res) => {
-            if (res.status) {
-                toastContext.setToastSeverity('success');
-                toastContext.setToastMessage('Token deleted.');
-                toastContext.setToast(true);
-                fetchRows();
-            }
-        });
-    };
-
     const fetchRows = () => {
         if (!loading) setLoading(true);
-        const params: any = {};
+        if (!projectUuid) {
+            setRows([]);
+            setPaging({ totalPages: 0, totalResultCount: 0 });
+            setLoading(false);
+            return;
+        }
+        const params: { status?: TokenStatus } = {};
         if (status) params.status = status;
-        if (selectedCustomer) params.customerId = selectedCustomer.id;
-        GetTokens({ page: page + 1 }, params).then((response: any) => {
-            const list = response.data || [];
+        GetTokens({ page: page + 1, perPage: constants.PER_PAGE }, projectUuid, params).then((response: any) => {
+            const list = response.data?.list || [];
             setRows(list.map((e: any) => ({
-                id: e.id,
-                customer: e.customer?.name || '—',
-                phone: e.customer ? `${e.customer.phoneCode}${e.customer.phoneNumber}` : '—',
-                plot: e.plot ? `${e.plot.block?.name}-${e.plot.plotNo}` : '—',
-                amount: `${currencyCode} ${(e.amount || 0).toLocaleString()}`,
+                id: e.uuid || e.id,
+                customer: `${e.customer?.firstName || ''} ${e.customer?.lastName || ''}`.trim() || '—',
+                plot: e.plot ? (e.plot.block?.name
+                    ? `${e.plot.block.name}-${e.plot.plotNo}`
+                    : `Plot ${e.plot.plotNo}`) : '—',
+                amount: `${currencyCode} ${Number(e.amount || 0).toLocaleString()}`,
                 status: e.status ? (
                     <Chip
                         label={e.status}
@@ -114,22 +69,11 @@ function Token() {
                         size="small"
                     />
                 ) : '—',
-                actions: (
-                    <Box sx={{ display: 'flex' }}>
-                        {hasPermission(PERMISSIONS.TOKEN.UPDATE) && (
-                            <IconButton component={NavLink} to={ROUTES.TOKEN.EDIT(e.id)} color="warning" size="small">
-                                <ModeEditIcon fontSize="small" />
-                            </IconButton>
-                        )}
-                        {hasPermission(PERMISSIONS.TOKEN.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.id)}>
-                                <DeleteIcon fontSize="small" />
-                            </IconButton>
-                        )}
-                    </Box>
-                ),
             })));
-            setPaging(response.paging || { totalPages: 0, totalResultCount: 0 });
+            setPaging({
+                totalPages: response.data?.pagination?.totalPages || 0,
+                totalResultCount: response.data?.pagination?.total || 0,
+            });
             setLoading(false);
         }).catch(() => setLoading(false));
     };
@@ -138,49 +82,25 @@ function Token() {
         breadcrumbContext.setBreadcrumb([{ name: 'Tokens' }]);
     }, []);
 
-    useEffect(() => { fetchRows(); }, [page, status, selectedCustomer]);
+    useEffect(() => { fetchRows(); }, [page, status, projectUuid]);
 
     return (
         <>
-            <PageTitle title="Tokens" btn={btn} />
+            <PageTitle title="Tokens" />
             <Card sx={{ mb: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                     <Grid container spacing={2}>
-                        {/* Customer filter */}
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                            <Autocomplete
-                                options={customerOptions}
-                                getOptionLabel={(opt) => opt.name ? `${opt.name} (${opt.phoneCode}${opt.phoneNumber})` : ''}
-                                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                                value={selectedCustomer}
-                                loading={customerLoading}
-                                filterOptions={(x) => x}
-                                noOptionsText={customerInput ? 'No customers found' : 'Type to search'}
-                                onInputChange={(_e, value) => setCustomerInput(value)}
-                                onChange={(_e, value) => { setSelectedCustomer(value); setPage(0); }}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Customer"
-                                        variant="standard"
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            endAdornment: (
-                                                <>
-                                                    {customerLoading ? <CircularProgress size={16} /> : null}
-                                                    {params.InputProps.endAdornment}
-                                                </>
-                                            ),
-                                        }}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                        {/* Status filter */}
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                             <FormControl variant="standard" fullWidth>
                                 <InputLabel>Status</InputLabel>
-                                <Select value={status} label="Status" onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
+                                <Select
+                                    value={status}
+                                    label="Status"
+                                    onChange={(event) => {
+                                        setStatus(event.target.value as TokenStatus | '');
+                                        setPage(0);
+                                    }}
+                                >
                                     <MenuItem value="">All</MenuItem>
                                     {Object.values(TOKEN_STATUS).map((s) => (
                                         <MenuItem key={s} value={s}>

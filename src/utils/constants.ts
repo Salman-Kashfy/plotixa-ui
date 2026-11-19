@@ -332,8 +332,6 @@ export const ROUTES = {
     },
     TOKEN: {
         LIST: '/tokens',
-        CREATE: '/token/create',
-        EDIT: ((id = null) => '/token/' + (id || ':id') + '/edit'),
     },
     BOOKING: {
         LIST: '/bookings',
@@ -599,11 +597,13 @@ export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'inf
 export enum TOKEN_STATUS {
     ACTIVE = 'ACTIVE',
     EXPIRED = 'EXPIRED',
+    CONVERTED = 'CONVERTED',
     REFUNDED = 'REFUNDED',
 }
 
 export const TOKEN_STATUS_COLOR: Record<TOKEN_STATUS, 'success' | 'error' | 'warning'> = {
     [TOKEN_STATUS.ACTIVE]: 'success',
     [TOKEN_STATUS.EXPIRED]: 'error',
+    [TOKEN_STATUS.CONVERTED]: 'warning',
     [TOKEN_STATUS.REFUNDED]: 'warning',
 };

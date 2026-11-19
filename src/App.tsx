@@ -28,9 +28,8 @@ import EditPlot from "./pages/plot/EditPlot";
 import Customer from "./pages/customer/Customer";
 import CreateCustomer from "./pages/customer/CreateCustomer";
 import EditCustomer from "./pages/customer/EditCustomer";
+import ViewCustomer from "./pages/customer/ViewCustomer";
 import Token from "./pages/token/Token";
-import CreateTokenPage from "./pages/token/CreateToken";
-import EditTokenPage from "./pages/token/EditToken";
 import Booking from "./pages/booking/Booking";
 import CreateBookingPage from "./pages/booking/CreateBooking";
 import EditBookingPage from "./pages/booking/EditBooking";
@@ -80,9 +79,8 @@ function App() {
                         <Route path={ROUTES.CUSTOMER.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Customer} permissionName={PERMISSIONS.CUSTOMER.LIST} />} />
                         <Route path={ROUTES.CUSTOMER.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateCustomer} permissionName={PERMISSIONS.CUSTOMER.CREATE} />} />
                         <Route path={ROUTES.CUSTOMER.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditCustomer} permissionName={PERMISSIONS.CUSTOMER.UPDATE} />} />
+                        <Route path={ROUTES.CUSTOMER.VIEW()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={ViewCustomer} permissionName={PERMISSIONS.CUSTOMER.LIST} />} />
                         <Route path={ROUTES.TOKEN.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Token} permissionName={PERMISSIONS.TOKEN.LIST} />} />
-                        <Route path={ROUTES.TOKEN.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateTokenPage} permissionName={PERMISSIONS.TOKEN.CREATE} />} />
-                        <Route path={ROUTES.TOKEN.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditTokenPage} permissionName={PERMISSIONS.TOKEN.UPDATE} />} />
                         <Route path={ROUTES.BOOKING.LIST} exact={true} element={<DashboardLayoutRoute isAuth={true} component={Booking} permissionName={PERMISSIONS.BOOKING.LIST} />} />
                         <Route path={ROUTES.BOOKING.CREATE} exact={true} element={<DashboardLayoutRoute isAuth={true} component={CreateBookingPage} permissionName={PERMISSIONS.BOOKING.CREATE} />} />
                         <Route path={ROUTES.BOOKING.EDIT()} exact={true} element={<DashboardLayoutRoute isAuth={true} component={EditBookingPage} permissionName={PERMISSIONS.BOOKING.UPDATE} />} />

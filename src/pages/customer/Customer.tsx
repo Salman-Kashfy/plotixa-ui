@@ -4,8 +4,9 @@ import {
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
     IconButton, TextField,
-    useTheme, useMediaQuery, Alert,
+    useTheme, useMediaQuery, Alert, Tooltip,
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { NavLink } from 'react-router-dom';
@@ -35,10 +36,8 @@ function Customer() {
     const [loadError, setLoadError] = useState('');
     const [phoneFilter, setPhoneFilter] = useState('');
 
-    const projectQuery = projectUuid ? `?projectUuid=${encodeURIComponent(projectUuid)}` : '';
-
     const btn = {
-        to: `${ROUTES.CUSTOMER.CREATE}${projectQuery}`,
+        to: ROUTES.CUSTOMER.CREATE,
         label: 'Add Customer',
         show: hasPermission(PERMISSIONS.CUSTOMER.CREATE),
     };
@@ -111,8 +110,19 @@ function Customer() {
                 phone: `${e.phoneCode} ${e.phoneNumber}`,
                 actions: (
                     <Box sx={{ display: 'flex' }}>
+                        <Tooltip title="View customer">
+                            <IconButton
+                                component={NavLink}
+                                to={ROUTES.CUSTOMER.VIEW(e.uuid)}
+                                color="primary"
+                                size="small"
+                                aria-label={`View ${e.firstName} ${e.lastName}`}
+                            >
+                                <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         {hasPermission(PERMISSIONS.CUSTOMER.UPDATE) && (
-                            <IconButton component={NavLink} to={`${ROUTES.CUSTOMER.EDIT(e.uuid)}${projectQuery}`} color="warning" size="small">
+                            <IconButton component={NavLink} to={ROUTES.CUSTOMER.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>
                         )}

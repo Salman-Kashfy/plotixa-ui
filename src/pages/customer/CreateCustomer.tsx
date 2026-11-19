@@ -15,7 +15,6 @@ function CreateCustomer() {
     const adminContext: any = useContext(AdminContext);
     const navigate = useNavigate();
     const projectUuid: string = adminContext.projectUuid || '';
-    const projectQuery = projectUuid ? `?projectUuid=${encodeURIComponent(projectUuid)}` : '';
     const [loading, setLoading] = useState(false);
 
     const onSubmit = (data: CustomerFields) => {
@@ -32,7 +31,7 @@ function CreateCustomer() {
                 toastContext.setToastSeverity('success');
                 toastContext.setToastMessage('Customer created successfully.');
                 toastContext.setToast(true);
-                navigate(`${ROUTES.CUSTOMER.LIST}${projectQuery}`);
+                navigate(ROUTES.CUSTOMER.LIST);
             } else {
                 toastContext.setToastSeverity('error');
                 toastContext.setToastMessage(response.errorMessage || response.message || 'Something went wrong.');
@@ -49,14 +48,14 @@ function CreateCustomer() {
 
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([
-            { to: `${ROUTES.CUSTOMER.LIST}${projectQuery}`, name: 'Customers' },
+            { to: ROUTES.CUSTOMER.LIST, name: 'Customers' },
             { name: 'Add Customer' },
         ]);
-    }, [projectQuery]);
+    }, []);
 
     return (
         <>
-            <PageTitle title="Add Customer" backTo={`${ROUTES.CUSTOMER.LIST}${projectQuery}`} />
+            <PageTitle title="Add Customer" backTo={ROUTES.CUSTOMER.LIST} />
             {!projectUuid && <Alert severity="error" sx={{ mb: 2 }}>Select a project before adding a customer.</Alert>}
             <CustomerForm callback={onSubmit} btnLabel="Create" loading={loading} />
         </>

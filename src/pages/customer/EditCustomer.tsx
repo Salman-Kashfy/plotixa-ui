@@ -16,7 +16,6 @@ function EditCustomer() {
     const navigate = useNavigate();
     const { uuid } = useParams<{ uuid: string }>();
     const projectUuid: string = adminContext.projectUuid || '';
-    const projectQuery = projectUuid ? `?projectUuid=${encodeURIComponent(projectUuid)}` : '';
     const [loading, setLoading] = useState(false);
     const [formLoader, setFormLoader] = useState(true);
     const [customerData, setCustomerData] = useState<Partial<Customer>>({});
@@ -36,7 +35,7 @@ function EditCustomer() {
                 toastContext.setToastSeverity('success');
                 toastContext.setToastMessage('Customer saved successfully.');
                 toastContext.setToast(true);
-                navigate(`${ROUTES.CUSTOMER.LIST}${projectQuery}`);
+                navigate(ROUTES.CUSTOMER.LIST);
             } else {
                 toastContext.setToastSeverity('error');
                 toastContext.setToastMessage(response.errorMessage || response.message || 'Something went wrong.');
@@ -53,7 +52,7 @@ function EditCustomer() {
 
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([
-            { to: `${ROUTES.CUSTOMER.LIST}${projectQuery}`, name: 'Customers' },
+            { to: ROUTES.CUSTOMER.LIST, name: 'Customers' },
             { name: 'Customer Details' },
         ]);
         if (!uuid) {
@@ -80,11 +79,14 @@ function EditCustomer() {
             setLoadError('Unable to load customer details. Please try again.');
             setFormLoader(false);
         });
-    }, [uuid, projectUuid, projectQuery]);
+    }, [uuid, projectUuid]);
 
     return (
         <>
-            <PageTitle title="Customer Details" backTo={`${ROUTES.CUSTOMER.LIST}${projectQuery}`} />
+            <PageTitle
+                title="Customer Details"
+                backTo={ROUTES.CUSTOMER.LIST}
+            />
             {loadError ? (
                 <Alert severity="error">{loadError}</Alert>
             ) : (
