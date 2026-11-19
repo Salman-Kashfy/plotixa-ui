@@ -135,7 +135,7 @@ function Plot() {
                 ),
                 actions: (
                     <Box sx={{ display: 'flex' }}>
-                        {hasPermission(PERMISSIONS.PLOT.UPDATE) && (
+                        {hasPermission(PERMISSIONS.PLOT.UPDATE) && e.status === PLOT_STATUS.ACTIVE && (
                             <IconButton component={NavLink} to={ROUTES.PLOT.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>

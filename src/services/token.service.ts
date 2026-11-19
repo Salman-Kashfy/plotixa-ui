@@ -39,5 +39,13 @@ export const UpsertToken = async (data: UpsertTokenRequest) => {
     return response || emptyMutationResponse;
 };
 
+export const RefundToken = async (uuid: string, projectUuid: string) => {
+    const response: any = await POST(
+        `${apiUrl.tokens}/${encodeURIComponent(uuid)}/refund`,
+        { projectUuid },
+    );
+    return response || emptyMutationResponse;
+};
+
 export const CreateToken = UpsertToken;
 export const UpdateToken = UpsertToken;

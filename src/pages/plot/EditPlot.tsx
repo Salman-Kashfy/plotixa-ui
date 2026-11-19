@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { Alert } from '@mui/material';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
-import { ROUTES } from '../../utils/constants';
+import { PLOT_STATUS, ROUTES } from '../../utils/constants';
 import { GetPlot, UpdatePlot } from '../../services/plot.service';
 import PageTitle from '../../components/PageTitle';
 import PlotForm from './PlotForm';
@@ -17,8 +18,15 @@ function EditPlot() {
     const [loading, setLoading] = useState(false);
     const [formLoader, setFormLoader] = useState(true);
     const [plotData, setPlotData] = useState({});
+    const [loadError, setLoadError] = useState('');
 
     const onSubmit = (data: any) => {
+        if ((plotData as any).status !== PLOT_STATUS.ACTIVE) {
+            toastContext.setToastSeverity('error');
+            toastContext.setToastMessage('Only active plots can be updated.');
+            toastContext.setToast(true);
+            return;
+        }
         setLoading(true);
         UpdatePlot(id!, data).then((response) => {
             if (response.status) {
@@ -49,6 +57,11 @@ function EditPlot() {
         ]);
         if (!id || !adminContext.projectUuid) return;
         GetPlot(id, adminContext.projectUuid).then((data) => {
+            if (data.status !== PLOT_STATUS.ACTIVE) {
+                setLoadError('Only active plots can be updated.');
+                setFormLoader(false);
+                return;
+            }
             setPlotData(data);
             setFormLoader(false);
         }).catch((error) => {
@@ -62,13 +75,17 @@ function EditPlot() {
     return (
         <>
             <PageTitle title="Edit Plot" backTo={ROUTES.PLOT.LIST} />
-            <PlotForm
-                data={plotData}
-                callback={onSubmit}
-                btnLabel="Update"
-                loading={loading}
-                formLoader={formLoader}
-            />
+            {loadError ? (
+                <Alert severity="warning">{loadError}</Alert>
+            ) : (
+                <PlotForm
+                    data={plotData}
+                    callback={onSubmit}
+                    btnLabel="Update"
+                    loading={loading}
+                    formLoader={formLoader}
+                />
+            )}
         </>
     );
 }

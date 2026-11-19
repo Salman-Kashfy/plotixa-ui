@@ -4,14 +4,18 @@ import {
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
     Chip, FormControl, InputLabel, Select, MenuItem,
-    useTheme, useMediaQuery,
+    useTheme, useMediaQuery, IconButton,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import UndoIcon from '@mui/icons-material/Undo';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
+import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
-import { constants, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
-import { GetTokens, getTokenExpiresInDays, type TokenStatus } from '../../services/token.service';
+import { constants, PERMISSIONS, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
+import { hasPermission } from '../../utils/permissions';
+import { GetTokens, RefundToken, getTokenExpiresInDays, type TokenStatus } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
+import AppDialog from '../../components/AppDialog';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
 import ListingCard from '../../components/ListingCard';
@@ -20,6 +24,7 @@ function Token() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const breadcrumbContext: any = useContext(BreadcrumbContext);
+    const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
     const projectUuid = adminContext.projectUuid || '';
     const currencyCode = adminContext.projects?.find(
@@ -30,6 +35,8 @@ function Token() {
     const [paging, setPaging] = useState({ totalPages: 0, totalResultCount: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
+    const [refundTarget, setRefundTarget] = useState<any | null>(null);
+    const [refunding, setRefunding] = useState(false);
 
     // Filters
     const [status, setStatus] = useState<TokenStatus | ''>('');
@@ -41,6 +48,7 @@ function Token() {
         { id: 'amount',    label: 'Amount',     minWidth: 120 },
         { id: 'status',    label: 'Status',     minWidth: 110 },
         { id: 'expiresIn', label: 'Expires In',  minWidth: 100 },
+        { id: 'actions',   label: 'Actions',     minWidth: 80 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
@@ -73,6 +81,16 @@ function Token() {
                         size="small"
                     />
                 ) : '—',
+                actions: e.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+                    <IconButton
+                        onClick={() => setRefundTarget(e)}
+                        color="warning"
+                        size="small"
+                        aria-label={`Refund token for ${e.customer?.firstName || 'customer'}`}
+                    >
+                        <UndoIcon fontSize="small" />
+                    </IconButton>
+                ) : null,
             })));
             setPaging({
                 totalPages: response.data?.pagination?.totalPages || 0,
@@ -87,6 +105,33 @@ function Token() {
     }, []);
 
     useEffect(() => { fetchRows(); }, [page, status, projectUuid]);
+
+    const refundToken = () => {
+        if (!refundTarget) return;
+        setRefunding(true);
+        RefundToken(refundTarget.uuid || refundTarget.id, projectUuid)
+            .then((response) => {
+                if (!response.status) {
+                    toastContext.setToastSeverity('error');
+                    toastContext.setToastMessage(
+                        response.message || response.errorMessage || 'Unable to refund token.',
+                    );
+                    toastContext.setToast(true);
+                    return;
+                }
+                toastContext.setToastSeverity('success');
+                toastContext.setToastMessage(response.message || 'Token refunded successfully.');
+                toastContext.setToast(true);
+                setRefundTarget(null);
+                fetchRows();
+            })
+            .catch(() => {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage('Unable to refund token. Please try again.');
+                toastContext.setToast(true);
+            })
+            .finally(() => setRefunding(false));
+    };
 
     return (
         <>
@@ -182,6 +227,15 @@ function Token() {
                     </Box>
                 </CardContent>
             </Card>
+            <AppDialog
+                open={Boolean(refundTarget)}
+                handleDialogClose={() => !refunding && setRefundTarget(null)}
+                title="Refund Token"
+                body={`Refund ${currencyCode} ${Number(refundTarget?.amount || 0).toLocaleString()} for this token?`}
+                dialogBtnLoading={refunding}
+                dialogBtnLabel="Refund"
+                onSubmit={refundToken}
+            />
         </>
     );
 }

@@ -2,23 +2,31 @@ import { useContext, useEffect, useState, type SyntheticEvent } from 'react';
 import {
     Accordion, AccordionDetails, AccordionSummary, Alert, Box, Button, Card,
     CardContent, Chip, CircularProgress, Divider, IconButton, Stack, Tab, Tabs,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
+    Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography,
     Dialog, DialogActions, DialogContent, DialogTitle,
     useMediaQuery, useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker';
+import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField';
+import { DateRange } from '@mui/x-date-pickers-pro/models';
 import LoadingButton from '@mui/lab/LoadingButton';
+import dayjs, { Dayjs } from 'dayjs';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ModeEditIcon from '@mui/icons-material/ModeEdit';
+import UndoIcon from '@mui/icons-material/Undo';
 import { useParams } from 'react-router-dom';
 import { AdminContext } from '../../hooks/AdminContext';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import PageTitle from '../../components/PageTitle';
+import AppDialog from '../../components/AppDialog';
 import ListingCard from '../../components/ListingCard';
 import { GetCustomer, type Customer } from '../../services/customer.service';
 import { GetBookings, GetBooking } from '../../services/booking.service';
-import { GetTokens, UpsertToken, getTokenExpiresInDays } from '../../services/token.service';
+import { GetTokens, UpsertToken, RefundToken, getTokenExpiresInDays } from '../../services/token.service';
+import { GetPayments, type Payment } from '../../services/payment.service';
 import { hasPermission } from '../../utils/permissions';
 import TokenForm from '../token/TokenForm';
 import {
@@ -74,6 +82,8 @@ function CustomerTokens({ customer }: { customer: Customer }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingToken, setEditingToken] = useState<any | null>(null);
     const [saving, setSaving] = useState(false);
+    const [refundTarget, setRefundTarget] = useState<any | null>(null);
+    const [refunding, setRefunding] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
@@ -114,11 +124,6 @@ function CustomerTokens({ customer }: { customer: Customer }) {
         setDialogOpen(true);
     };
 
-    const openEditDialog = (token: any) => {
-        setEditingToken(token);
-        setDialogOpen(true);
-    };
-
     const closeDialog = () => {
         if (saving) return;
         setDialogOpen(false);
@@ -155,6 +160,33 @@ function CustomerTokens({ customer }: { customer: Customer }) {
             .finally(() => setSaving(false));
     };
 
+    const refundToken = () => {
+        if (!refundTarget) return;
+        setRefunding(true);
+        RefundToken(refundTarget.uuid || refundTarget.id, projectUuid)
+            .then((response) => {
+                if (!response.status) {
+                    toastContext.setToastSeverity('error');
+                    toastContext.setToastMessage(
+                        response.message || response.errorMessage || 'Unable to refund token.',
+                    );
+                    toastContext.setToast(true);
+                    return;
+                }
+                toastContext.setToastSeverity('success');
+                toastContext.setToastMessage(response.message || 'Token refunded successfully.');
+                toastContext.setToast(true);
+                setRefundTarget(null);
+                setRefreshKey((key) => key + 1);
+            })
+            .catch(() => {
+                toastContext.setToastSeverity('error');
+                toastContext.setToastMessage('Unable to refund token. Please try again.');
+                toastContext.setToast(true);
+            })
+            .finally(() => setRefunding(false));
+    };
+
     const tokenColumns = [
         { id: 'plot', label: 'Plot', minWidth: 120 },
         { id: 'category', label: 'Category', minWidth: 120 },
@@ -179,14 +211,14 @@ function CustomerTokens({ customer }: { customer: Customer }) {
             />
         ),
         expiresIn: `${getTokenExpiresInDays(token.status, token.expiredAt)} days`,
-        actions: hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+        actions: token.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
             <IconButton
-                onClick={() => openEditDialog(token)}
+                onClick={() => setRefundTarget(token)}
                 color="warning"
                 size="small"
-                aria-label="Edit token"
+                aria-label="Refund token"
             >
-                <ModeEditIcon fontSize="small" />
+                <UndoIcon fontSize="small" />
             </IconButton>
         ) : null,
     }));
@@ -220,7 +252,7 @@ function CustomerTokens({ customer }: { customer: Customer }) {
                         </Stack>
                     ) : (
                         <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-                            <Table size="small" stickyHeader sx={{ minWidth: 680 }}>
+                            <Table stickyHeader sx={{ minWidth: 680 }}>
                                 <TableHead>
                                     <TableRow>
                                         {tokenColumns.map((column) => (
@@ -269,6 +301,15 @@ function CustomerTokens({ customer }: { customer: Customer }) {
                     </LoadingButton>
                 </DialogActions>
             </Dialog>
+            <AppDialog
+                open={Boolean(refundTarget)}
+                handleDialogClose={() => !refunding && setRefundTarget(null)}
+                title="Refund Token"
+                body={`Refund ${currencyCode} ${Number(refundTarget?.amount || 0).toLocaleString()} for this token?`}
+                dialogBtnLoading={refunding}
+                dialogBtnLabel="Refund"
+                onSubmit={refundToken}
+            />
         </Card>
     );
 }
@@ -421,6 +462,160 @@ function CustomerBookings({ customer }: { customer: Customer }) {
     );
 }
 
+function CustomerPayments({ customer }: { customer: Customer }) {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const adminContext: any = useContext(AdminContext);
+    const projectUuid = adminContext.projectUuid || '';
+    const currencyCode = adminContext.projects?.find(
+        (project: any) => project.uuid === projectUuid,
+    )?.currencyCode || '';
+    const [page, setPage] = useState(0);
+    const [dateRange, setDateRange] = useState<DateRange<Dayjs>>([null, null]);
+    const [payments, setPayments] = useState<Payment[]>([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        let active = true;
+        const filters: { customerUuid: string; startDate?: string; endDate?: string } = {
+            customerUuid: customer.uuid,
+        };
+        if (dateRange[0]) filters.startDate = dateRange[0].format('YYYY-MM-DD');
+        if (dateRange[1]) filters.endDate = dateRange[1].format('YYYY-MM-DD');
+
+        setLoading(true);
+        setError('');
+        GetPayments({ page: page + 1, perPage: 20 }, projectUuid, filters)
+            .then((response) => {
+                if (!active) return;
+                setPayments(response.list);
+                setTotal(response.pagination.total);
+            })
+            .catch(() => {
+                if (active) setError('Unable to load customer payments. Please try again.');
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+
+        return () => { active = false; };
+    }, [customer.uuid, dateRange, page, projectUuid]);
+
+    const handleDateRangeChange = (values: DateRange<Dayjs>) => {
+        setDateRange(values);
+        setPage(0);
+    };
+
+    const columns = [
+        { id: 'type', label: 'Type', minWidth: 110 },
+        { id: 'plot', label: 'Plot', minWidth: 120 },
+        { id: 'amount', label: 'Amount', minWidth: 120 },
+        { id: 'status', label: 'Status', minWidth: 100 },
+        { id: 'date', label: 'Payment Date', minWidth: 140 },
+    ];
+
+    const rows = payments.map((payment) => ({
+        id: payment.uuid,
+        type: payment.type
+            ? payment.type.charAt(0).toUpperCase() + payment.type.slice(1).toLowerCase()
+            : '—',
+        plot: `Plot ${payment.plot?.plotNo || '—'}`,
+        amount: `${currencyCode} ${Number(payment.amount || 0).toLocaleString()}`,
+        status: (
+            <Chip
+                label={payment.status}
+                color={payment.status === 'PAID' ? 'success' : 'default'}
+                size="small"
+            />
+        ),
+        date: payment.createdAt ? dayjs(payment.createdAt).format('MMM DD, YYYY') : '—',
+    }));
+
+    return (
+        <Card>
+            <CardContent sx={{ p: { xs: 2, sm: 3 }, overflow: 'hidden' }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>Payments</Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DateRangePicker
+                                slots={{ field: SingleInputDateRangeField }}
+                                value={dateRange}
+                                onChange={handleDateRangeChange}
+                                format="MMM DD, YYYY"
+                                label="Payment Date Range"
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        size: 'small',
+                                    },
+                                    shortcuts: {
+                                        items: [
+                                            { label: 'Today', getValue: () => [dayjs(), dayjs()] },
+                                            { label: 'Last 7 Days', getValue: () => [dayjs().subtract(7, 'day'), dayjs()] },
+                                            { label: 'This Month', getValue: () => [dayjs().startOf('month'), dayjs()] },
+                                            { label: 'Reset', getValue: () => [null, null] },
+                                        ],
+                                    },
+                                }}
+                            />
+                        </LocalizationProvider>
+                    </Grid>
+                </Grid>
+                {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+                {loading ? (
+                    <Box sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+                        <CircularProgress size={28} />
+                    </Box>
+                ) : !rows.length && !error ? (
+                    <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                        No payments found for this customer.
+                    </Typography>
+                ) : isMobile ? (
+                    <Stack spacing={2}>
+                        {rows.map((row) => (
+                            <ListingCard key={row.id} row={row} columns={columns} />
+                        ))}
+                    </Stack>
+                ) : (
+                    <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                        <Table stickyHeader size="small" sx={{ minWidth: 620 }}>
+                            <TableHead>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell key={column.id} sx={{ minWidth: column.minWidth }}>
+                                            {column.label}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {rows.map((row) => (
+                                    <TableRow hover key={row.id}>
+                                        {columns.map((column) => (
+                                            <TableCell key={column.id}>{row[column.id]}</TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+                <TablePagination
+                    component="div"
+                    count={total}
+                    rowsPerPage={20}
+                    page={page}
+                    onPageChange={(_event, nextPage) => setPage(nextPage)}
+                    rowsPerPageOptions={[]}
+                />
+            </CardContent>
+        </Card>
+    );
+}
+
 function ViewCustomer() {
     const { uuid } = useParams<{ uuid: string }>();
     const adminContext: any = useContext(AdminContext);
@@ -496,13 +691,7 @@ function ViewCustomer() {
                     <TabPanel active={tab === 1}><CustomerTokens customer={customer} /></TabPanel>
                     <TabPanel active={tab === 2}><CustomerBookings customer={customer} /></TabPanel>
                     <TabPanel active={tab === 3}>
-                        <Card>
-                            <CardContent sx={{ py: 5 }}>
-                                <Typography color="text.secondary" textAlign="center">
-                                    Customer payments will appear here.
-                                </Typography>
-                            </CardContent>
-                        </Card>
+                        <CustomerPayments customer={customer} />
                     </TabPanel>
                 </>
             ) : null}
