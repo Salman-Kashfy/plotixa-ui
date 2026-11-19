@@ -1,17 +1,25 @@
 import { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
+import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES } from '../../utils/constants';
 import { CreateBooking } from '../../services/booking.service';
+import { GetToken } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
 import BookingForm from './BookingForm';
 
 function CreateBookingPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
+    const adminContext: any = useContext(AdminContext);
+    const tokenId = searchParams.get('tokenId');
     const [loading, setLoading] = useState(false);
+    const [formLoader, setFormLoader] = useState(Boolean(tokenId));
+    const [tokenData, setTokenData] = useState<any>({});
+    const [loadError, setLoadError] = useState('');
 
     useEffect(() => {
         breadcrumbContext.setBreadcrumb([
@@ -19,6 +27,40 @@ function CreateBookingPage() {
             { name: 'Create' },
         ]);
     }, []);
+
+    useEffect(() => {
+        if (!tokenId) return;
+        if (!adminContext.projectUuid) {
+            setLoadError('Select a project before creating a booking from a token.');
+            setFormLoader(false);
+            return;
+        }
+
+        setFormLoader(true);
+        setLoadError('');
+        GetToken(tokenId, adminContext.projectUuid)
+            .then((token) => {
+                if (!token?.uuid && !token?.id) {
+                    setLoadError('Unable to load the selected token.');
+                    return;
+                }
+                if (token.status !== 'ACTIVE') {
+                    setLoadError('Only active tokens can be converted into a booking.');
+                    return;
+                }
+                if (!token.plot || !token.customer) {
+                    setLoadError('The token is missing required plot or customer information.');
+                    return;
+                }
+                setTokenData({
+                    ...token,
+                    tokenAmount: token.amount,
+                    tokenUuid: token.uuid || token.id,
+                });
+            })
+            .catch(() => setLoadError('Unable to load the selected token.'))
+            .finally(() => setFormLoader(false));
+    }, [adminContext.projectUuid, tokenId]);
 
     const handleSubmit = (data: any) => {
         setLoading(true);
@@ -40,7 +82,15 @@ function CreateBookingPage() {
     return (
         <>
             <PageTitle title="Create Booking" />
-            <BookingForm callback={handleSubmit} btnLabel="Create Booking" loading={loading} />
+            <BookingForm
+                data={tokenData}
+                tokenLocked={Boolean(tokenId)}
+                callback={handleSubmit}
+                btnLabel="Create Booking"
+                loading={loading}
+                formLoader={formLoader}
+                loadError={loadError}
+            />
         </>
     );
 }

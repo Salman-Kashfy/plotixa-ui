@@ -16,6 +16,8 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import dayjs, { Dayjs } from 'dayjs';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import UndoIcon from '@mui/icons-material/Undo';
+import BookingIcon from '@mui/icons-material/EventAvailable';
+import { NavLink } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { AdminContext } from '../../hooks/AdminContext';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
@@ -211,16 +213,31 @@ function CustomerTokens({ customer }: { customer: Customer }) {
             />
         ),
         expiresIn: `${getTokenExpiresInDays(token.status, token.expiredAt)} days`,
-        actions: token.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
-            <IconButton
-                onClick={() => setRefundTarget(token)}
-                color="warning"
-                size="small"
-                aria-label="Refund token"
-            >
-                <UndoIcon fontSize="small" />
-            </IconButton>
-        ) : null,
+        actions: (
+            <Box sx={{ display: 'flex' }}>
+                {token.status === TOKEN_STATUS.ACTIVE && hasPermission(PERMISSIONS.BOOKING.CREATE) ? (
+                    <IconButton
+                        component={NavLink}
+                        to={`${ROUTES.BOOKING.CREATE}?tokenId=${encodeURIComponent(token.uuid || token.id)}`}
+                        color="primary"
+                        size="small"
+                        aria-label="Create booking"
+                    >
+                        <BookingIcon fontSize="small" />
+                    </IconButton>
+                ) : null}
+                {token.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+                    <IconButton
+                        onClick={() => setRefundTarget(token)}
+                        color="warning"
+                        size="small"
+                        aria-label="Refund token"
+                    >
+                        <UndoIcon fontSize="small" />
+                    </IconButton>
+                ) : null}
+            </Box>
+        ),
     }));
 
     return (

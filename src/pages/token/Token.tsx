@@ -8,10 +8,13 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import UndoIcon from '@mui/icons-material/Undo';
+import BookingIcon from '@mui/icons-material/EventAvailable';
+import { NavLink } from 'react-router-dom';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { constants, PERMISSIONS, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
+import { ROUTES } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { GetTokens, RefundToken, getTokenExpiresInDays, type TokenStatus } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
@@ -81,16 +84,31 @@ function Token() {
                         size="small"
                     />
                 ) : '—',
-                actions: e.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
-                    <IconButton
-                        onClick={() => setRefundTarget(e)}
-                        color="warning"
-                        size="small"
-                        aria-label={`Refund token for ${e.customer?.firstName || 'customer'}`}
-                    >
-                        <UndoIcon fontSize="small" />
-                    </IconButton>
-                ) : null,
+                actions: (
+                    <Box sx={{ display: 'flex' }}>
+                        {e.status === TOKEN_STATUS.ACTIVE && hasPermission(PERMISSIONS.BOOKING.CREATE) ? (
+                            <IconButton
+                                component={NavLink}
+                                to={`${ROUTES.BOOKING.CREATE}?tokenId=${encodeURIComponent(e.uuid || e.id)}`}
+                                color="primary"
+                                size="small"
+                                aria-label="Create booking"
+                            >
+                                <BookingIcon fontSize="small" />
+                            </IconButton>
+                        ) : null}
+                        {e.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+                            <IconButton
+                                onClick={() => setRefundTarget(e)}
+                                color="warning"
+                                size="small"
+                                aria-label={`Refund token for ${e.customer?.firstName || 'customer'}`}
+                            >
+                                <UndoIcon fontSize="small" />
+                            </IconButton>
+                        ) : null}
+                    </Box>
+                ),
             })));
             setPaging({
                 totalPages: response.data?.pagination?.totalPages || 0,

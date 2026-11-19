@@ -4,7 +4,7 @@ import {
     FormControl, InputLabel, Select, MenuItem, FormHelperText,
     InputAdornment, Divider,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Chip,
+    Chip, Alert,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -18,10 +18,12 @@ import { TENURE_OPTIONS } from '../../utils/constants';
 
 type Props = {
     data?: any;
+    tokenLocked?: boolean;
     callback: (data: any) => void;
     btnLabel: string;
     loading: boolean;
     formLoader?: boolean;
+    loadError?: string;
 };
 
 type InstallmentRow = { month: number; label: string; amount: number; isQuarterly: boolean };
@@ -76,7 +78,15 @@ function n(val: any) {
     return isNaN(v) ? 0 : v;
 }
 
-function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = false }: Props) {
+function BookingForm({
+    data = {},
+    tokenLocked = false,
+    callback,
+    btnLabel,
+    loading,
+    formLoader = false,
+    loadError = '',
+}: Props) {
     const adminContext: any = useContext(AdminContext);
     const projectUuid = adminContext.projectUuid;
     const currencyCode = adminContext.projects?.find(
@@ -86,6 +96,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [categoryId, setCategoryId] = useState('');
+    const blockId = data.plot?.block?.uuid || data.plot?.block?.id || '';
     const [plots, setPlots] = useState<any[]>([]);
     const [plotsLoading, setPlotsLoading] = useState(false);
     const [plotPrice, setPlotPrice] = useState<number>(0);
@@ -122,6 +133,12 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     useEffect(() => {
         let active = true;
 
+        if (tokenLocked) {
+            setCategories([]);
+            setCategoriesLoading(false);
+            return () => { active = false; };
+        }
+
         setCategories([]);
         setCategoryId('');
         setValue('plotId', '');
@@ -145,12 +162,12 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
             });
 
         return () => { active = false; };
-    }, [projectUuid, setValue]);
+    }, [projectUuid, setValue, tokenLocked]);
 
     useEffect(() => {
         let active = true;
 
-        if (!projectUuid || !categoryId) {
+        if (tokenLocked || !projectUuid || !categoryId) {
             setPlots([]);
             setPlotsLoading(false);
             return () => { active = false; };
@@ -160,6 +177,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         GetPlots({ page: 1, limit: 200 }, {
             projectUuid,
             categoryUuid: categoryId,
+            status: 'ACTIVE',
         }).then((res) => {
             if (active) setPlots(res.list || []);
         }).catch(() => {
@@ -169,13 +187,13 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
         });
 
         return () => { active = false; };
-    }, [categoryId, projectUuid]);
+    }, [categoryId, projectUuid, tokenLocked]);
 
     // Populate edit data
     useEffect(() => {
         if (Object.keys(data).length) {
             if (data.plot) {
-                setPlotPrice(data.plot.price || 0);
+                setPlotPrice(Number(data.plot.price || 0));
                 const editCategoryId = data.plot.category?.uuid || data.plot.category?.id;
                 if (editCategoryId) setCategoryId(editCategoryId);
             }
@@ -220,6 +238,9 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     const onSubmit = (formData: any) => {
         const _data: any = {
+            ...(projectUuid ? { projectUuid } : {}),
+            ...(data.customer?.uuid ? { customerUuid: data.customer.uuid } : {}),
+            ...(data.tokenUuid ? { tokenUuid: data.tokenUuid } : {}),
             plotId: formData.plotId,
             tokenAmount: n(formData.tokenAmount),
             bookingAmount: n(formData.bookingAmount),
@@ -255,6 +276,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                         field={field}
                         value={field.value}
                         label={label}
+                        disabled={tokenLocked && name === 'tokenAmount'}
                         inputProps={{ step: '1', min: '0' }}
                         InputProps={currencyCode ? {
                             startAdornment: <InputAdornment position="start">{currencyCode}</InputAdornment>,
@@ -267,12 +289,42 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
+            {loadError ? (
+                <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>
+            ) : null}
+            {tokenLocked && data.customer ? (
+                <Card sx={{ mb: 3 }}>
+                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                        <Typography variant="caption" color="text.secondary">Customer</Typography>
+                        <Typography variant="h6">
+                            {`${data.customer.firstName || ''} ${data.customer.lastName || ''}`.trim() || 'Customer'}
+                        </Typography>
+                        {data.customer.phoneCode || data.customer.phoneNumber ? (
+                            <Typography variant="body2" color="text.secondary">
+                                {data.customer.phoneCode || ''} {data.customer.phoneNumber || ''}
+                            </Typography>
+                        ) : null}
+                    </CardContent>
+                </Card>
+            ) : null}
             {/* ── Category & Plot selection ── */}
             <Card sx={{ mb: 3 }}>
                 <ProgressBar formLoader={loading || formLoader}>{null}</ProgressBar>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Typography variant="h6" sx={{ mb: 3 }}>Plot</Typography>
                     <Grid container spacing={3} alignItems="flex-end">
+                        {tokenLocked ? (
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                                <FormControl variant="standard" fullWidth disabled>
+                                    <InputLabel>Block</InputLabel>
+                                    <Select value={blockId} label="Block">
+                                        <MenuItem value={blockId}>
+                                            {data.plot?.block?.name || 'Selected block'}
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        ) : null}
 
                         {/* Category */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -281,7 +333,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                 <Select
                                     value={categoryId}
                                     label="Category"
-                                    disabled={categoriesLoading}
+                                    disabled={tokenLocked || categoriesLoading}
                                     onChange={(e) => {
                                         setCategoryId(e.target.value);
                                         setValue('plotId', '');
@@ -291,11 +343,15 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                     <MenuItem value="">
                                         <em>{categoriesLoading ? 'Loading...' : 'Select category'}</em>
                                     </MenuItem>
-                                    {categories.map((c) => (
-                                        <MenuItem key={c.uuid || c.id} value={c.uuid || c.id}>
-                                            {c.name}
+                                    {tokenLocked ? (
+                                        <MenuItem value={categoryId}>
+                                            {data.plot?.category?.name || 'Selected category'}
                                         </MenuItem>
-                                    ))}
+                                    ) : categories.map((c) => (
+                                            <MenuItem key={c.uuid || c.id} value={c.uuid || c.id}>
+                                                {c.name}
+                                            </MenuItem>
+                                        ))}
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -312,7 +368,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                         <Select
                                             {...field}
                                             label="Plot"
-                                            disabled={!categoryId || plotsLoading}
+                                            disabled={tokenLocked || !categoryId || plotsLoading}
                                             onChange={(e) => {
                                                 field.onChange(e.target.value);
                                                 handlePlotChange(e.target.value);
@@ -325,11 +381,15 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                                         : 'Select plot'}
                                                 </em>
                                             </MenuItem>
-                                            {plots.map((p) => (
+                                            {!tokenLocked ? plots.map((p) => (
                                                 <MenuItem key={p.uuid || p.id} value={p.uuid || p.id}>
                                                     {p.block?.name}-{p.plotNo}
                                                 </MenuItem>
-                                            ))}
+                                            )) : (
+                                                <MenuItem value={data.plot?.uuid || data.plot?.id}>
+                                                    {data.plot?.block?.name}-{data.plot?.plotNo}
+                                                </MenuItem>
+                                            )}
                                         </Select>
                                         {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
                                     </FormControl>
@@ -473,7 +533,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                     variant="contained"
                     type="submit"
                     loading={loading}
-                    disabled={loading}
+                    disabled={loading || formLoader || Boolean(loadError)}
                     sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                     {btnLabel}
