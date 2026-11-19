@@ -25,6 +25,7 @@ type Props = {
 };
 
 type InstallmentRow = { month: number; label: string; amount: number; isQuarterly: boolean };
+type CategoryOption = { id?: string; uuid?: string; name: string };
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -77,11 +78,13 @@ function n(val: any) {
 
 function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = false }: Props) {
     const adminContext: any = useContext(AdminContext);
+    const projectUuid = adminContext.projectUuid;
     const currencyCode = adminContext.projects?.find(
-        (p: any) => p.uuid === adminContext.projectUuid
+        (p: any) => p.uuid === projectUuid
     )?.currencyCode || '';
 
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [categoryId, setCategoryId] = useState('');
     const [plots, setPlots] = useState<any[]>([]);
     const [plotsLoading, setPlotsLoading] = useState(false);
@@ -102,7 +105,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     const { control, handleSubmit, reset, setValue } = useForm({
         mode: 'onChange',
         defaultValues: Object.keys(data).length === 0 ? defaultValues : {
-            plotId: data.plot?.id || '',
+            plotId: data.plot?.uuid || data.plot?.id || '',
             tokenAmount: data.tokenAmount || '',
             bookingAmount: data.bookingAmount || '',
             allocationAmount: data.allocationAmount || '',
@@ -116,33 +119,68 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
 
     const watched = useWatch({ control });
 
-    // Fetch categories on mount
     useEffect(() => {
-        GetCategories().then(setCategories);
-    }, []);
+        let active = true;
 
-    // Fetch plots when category changes
+        setCategories([]);
+        setCategoryId('');
+        setValue('plotId', '');
+        setPlotPrice(0);
+
+        if (!projectUuid) {
+            setCategoriesLoading(false);
+            return () => { active = false; };
+        }
+
+        setCategoriesLoading(true);
+        GetCategories({ projectUuid })
+            .then((items) => {
+                if (active) setCategories(items);
+            })
+            .catch(() => {
+                if (active) setCategories([]);
+            })
+            .finally(() => {
+                if (active) setCategoriesLoading(false);
+            });
+
+        return () => { active = false; };
+    }, [projectUuid, setValue]);
+
     useEffect(() => {
-        if (!categoryId) { setPlots([]); return; }
+        let active = true;
+
+        if (!projectUuid || !categoryId) {
+            setPlots([]);
+            setPlotsLoading(false);
+            return () => { active = false; };
+        }
+
         setPlotsLoading(true);
         GetPlots({ page: 1, limit: 200 }, {
-            projectUuid: adminContext.projectUuid,
+            projectUuid,
             categoryUuid: categoryId,
         }).then((res) => {
-            setPlots(res.list || []);
-            setPlotsLoading(false);
-        }).catch(() => setPlotsLoading(false));
-    }, [categoryId, adminContext.projectUuid]);
+            if (active) setPlots(res.list || []);
+        }).catch(() => {
+            if (active) setPlots([]);
+        }).finally(() => {
+            if (active) setPlotsLoading(false);
+        });
+
+        return () => { active = false; };
+    }, [categoryId, projectUuid]);
 
     // Populate edit data
     useEffect(() => {
         if (Object.keys(data).length) {
             if (data.plot) {
                 setPlotPrice(data.plot.price || 0);
-                if (data.plot.category?.id) setCategoryId(data.plot.category.id);
+                const editCategoryId = data.plot.category?.uuid || data.plot.category?.id;
+                if (editCategoryId) setCategoryId(editCategoryId);
             }
             reset({
-                plotId: data.plot?.id || '',
+                plotId: data.plot?.uuid || data.plot?.id || '',
                 tokenAmount: data.tokenAmount || '',
                 bookingAmount: data.bookingAmount || '',
                 allocationAmount: data.allocationAmount || '',
@@ -156,7 +194,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
     }, [data, reset]);
 
     const handlePlotChange = (plotId: string) => {
-        const plot = plots.find((p) => p.id === plotId);
+        const plot = plots.find((p) => (p.uuid || p.id) === plotId);
         setPlotPrice(plot?.price || 0);
         setValue('plotId', plotId);
     };
@@ -243,15 +281,20 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                 <Select
                                     value={categoryId}
                                     label="Category"
+                                    disabled={categoriesLoading}
                                     onChange={(e) => {
                                         setCategoryId(e.target.value);
                                         setValue('plotId', '');
                                         setPlotPrice(0);
                                     }}
                                 >
-                                    <MenuItem value=""><em>Select category</em></MenuItem>
+                                    <MenuItem value="">
+                                        <em>{categoriesLoading ? 'Loading...' : 'Select category'}</em>
+                                    </MenuItem>
                                     {categories.map((c) => (
-                                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                                        <MenuItem key={c.uuid || c.id} value={c.uuid || c.id}>
+                                            {c.name}
+                                        </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
@@ -283,7 +326,7 @@ function BookingForm({ data = {}, callback, btnLabel, loading, formLoader = fals
                                                 </em>
                                             </MenuItem>
                                             {plots.map((p) => (
-                                                <MenuItem key={p.id} value={p.id}>
+                                                <MenuItem key={p.uuid || p.id} value={p.uuid || p.id}>
                                                     {p.block?.name}-{p.plotNo}
                                                 </MenuItem>
                                             ))}
