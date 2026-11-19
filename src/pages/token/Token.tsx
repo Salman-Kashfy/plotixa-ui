@@ -10,7 +10,7 @@ import Grid from '@mui/material/Grid2';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { constants, TOKEN_STATUS, TOKEN_STATUS_COLOR } from '../../utils/constants';
-import { GetTokens, type TokenStatus } from '../../services/token.service';
+import { GetTokens, getTokenExpiresInDays, type TokenStatus } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -37,8 +37,10 @@ function Token() {
     const columns = [
         { id: 'customer',  label: 'Customer',  minWidth: 160 },
         { id: 'plot',      label: 'Plot',       minWidth: 120 },
+        { id: 'category',  label: 'Category',   minWidth: 120 },
         { id: 'amount',    label: 'Amount',     minWidth: 120 },
         { id: 'status',    label: 'Status',     minWidth: 110 },
+        { id: 'expiresIn', label: 'Expires In',  minWidth: 100 },
     ];
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
@@ -58,10 +60,12 @@ function Token() {
             setRows(list.map((e: any) => ({
                 id: e.uuid || e.id,
                 customer: `${e.customer?.firstName || ''} ${e.customer?.lastName || ''}`.trim() || '—',
-                plot: e.plot ? (e.plot.block?.name
-                    ? `${e.plot.block.name}-${e.plot.plotNo}`
-                    : `Plot ${e.plot.plotNo}`) : '—',
+                plot: e.plotName || (e.plot?.block?.name
+                    ? `${e.plot.block.name} - ${e.plot.plotNo}`
+                    : `Plot ${e.plot?.plotNo || '—'}`),
+                category: e.plot?.category?.name || '—',
                 amount: `${currencyCode} ${Number(e.amount || 0).toLocaleString()}`,
+                expiresIn: `${getTokenExpiresInDays(e.status, e.expiredAt)} days`,
                 status: e.status ? (
                     <Chip
                         label={e.status}
@@ -88,7 +92,7 @@ function Token() {
         <>
             <PageTitle title="Tokens" />
             <Card sx={{ mb: 3 }}>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 }, overflow: 'hidden' }}>
                     <Grid container spacing={2}>
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                             <FormControl variant="standard" fullWidth>
@@ -135,12 +139,12 @@ function Token() {
                                 ) : null}
                             </>
                         ) : (
-                            <TableContainer sx={{ overflowX: 'auto' }}>
-                                <Table stickyHeader aria-label="tokens table" sx={{ minWidth: 550 }}>
+                            <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                                <Table stickyHeader aria-label="tokens table" sx={{ minWidth: 700 }}>
                                     <TableHead>
                                         <TableRow>
                                             {columns.map((col) => (
-                                                <TableCell key={col.id} style={{ minWidth: col.minWidth }}>
+                                                <TableCell key={col.id} sx={{ minWidth: col.minWidth, whiteSpace: 'nowrap' }}>
                                                     {col.label}
                                                 </TableCell>
                                             ))}
@@ -150,7 +154,9 @@ function Token() {
                                         {rows.map((row) => (
                                             <TableRow hover key={row.id} sx={{ opacity: loading ? 0.2 : 1 }}>
                                                 {columns.map((col) => (
-                                                    <TableCell key={col.id}>{row[col.id]}</TableCell>
+                                                    <TableCell key={col.id} sx={{ whiteSpace: 'nowrap' }}>
+                                                        {row[col.id]}
+                                                    </TableCell>
                                                 ))}
                                             </TableRow>
                                         ))}

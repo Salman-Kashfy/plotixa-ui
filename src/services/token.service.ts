@@ -3,6 +3,13 @@ import { GET, POST } from './api.service.wrapper';
 
 export type TokenStatus = 'ACTIVE' | 'EXPIRED' | 'CONVERTED' | 'REFUNDED';
 
+export const getTokenExpiresInDays = (status: string, expiredAt?: string | null) => {
+    if (status !== 'ACTIVE' || !expiredAt) return 0;
+    const expirationTime = new Date(expiredAt).getTime();
+    if (!Number.isFinite(expirationTime)) return 0;
+    return Math.max(0, Math.ceil((expirationTime - Date.now()) / 86_400_000));
+};
+
 export type UpsertTokenRequest = {
     projectUuid: string;
     plotUuid: string;

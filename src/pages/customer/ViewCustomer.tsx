@@ -4,6 +4,7 @@ import {
     CardContent, Chip, CircularProgress, Divider, IconButton, Stack, Tab, Tabs,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
     Dialog, DialogActions, DialogContent, DialogTitle,
+    useMediaQuery, useTheme,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -14,9 +15,10 @@ import { AdminContext } from '../../hooks/AdminContext';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import PageTitle from '../../components/PageTitle';
+import ListingCard from '../../components/ListingCard';
 import { GetCustomer, type Customer } from '../../services/customer.service';
 import { GetBookings, GetBooking } from '../../services/booking.service';
-import { GetTokens, UpsertToken } from '../../services/token.service';
+import { GetTokens, UpsertToken, getTokenExpiresInDays } from '../../services/token.service';
 import { hasPermission } from '../../utils/permissions';
 import TokenForm from '../token/TokenForm';
 import {
@@ -58,6 +60,8 @@ function CustomerDetails({ customer }: { customer: Customer }) {
 }
 
 function CustomerTokens({ customer }: { customer: Customer }) {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const adminContext: any = useContext(AdminContext);
     const toastContext: any = useContext(ToastContext);
     const projectUuid = adminContext.projectUuid || '';
@@ -151,6 +155,42 @@ function CustomerTokens({ customer }: { customer: Customer }) {
             .finally(() => setSaving(false));
     };
 
+    const tokenColumns = [
+        { id: 'plot', label: 'Plot', minWidth: 120 },
+        { id: 'category', label: 'Category', minWidth: 120 },
+        { id: 'amount', label: 'Amount', minWidth: 120 },
+        { id: 'status', label: 'Status', minWidth: 110 },
+        { id: 'expiresIn', label: 'Expires In', minWidth: 100 },
+        { id: 'actions', label: 'Actions', minWidth: 80 },
+    ];
+
+    const tokenRows = tokens.map((token) => ({
+        id: token.uuid || token.id,
+        plot: token.plotName || (token.plot?.block?.name
+            ? `${token.plot.block.name} - ${token.plot.plotNo}`
+            : `Plot ${token.plot?.plotNo || '—'}`),
+        category: token.plot?.category?.name || '—',
+        amount: `${currencyCode} ${Number(token.amount || 0).toLocaleString()}`,
+        status: (
+            <Chip
+                label={token.status}
+                color={TOKEN_STATUS_COLOR[token.status as TOKEN_STATUS] || 'default'}
+                size="small"
+            />
+        ),
+        expiresIn: `${getTokenExpiresInDays(token.status, token.expiredAt)} days`,
+        actions: hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+            <IconButton
+                onClick={() => openEditDialog(token)}
+                color="warning"
+                size="small"
+                aria-label="Edit token"
+            >
+                <ModeEditIcon fontSize="small" />
+            </IconButton>
+        ) : null,
+    }));
+
     return (
         <Card>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
@@ -172,51 +212,36 @@ function CustomerTokens({ customer }: { customer: Customer }) {
                         No tokens found for this customer.
                     </Typography>
                 ) : (
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Plot</TableCell>
-                                    <TableCell>Amount</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell align="right">Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {tokens.map((token) => (
-                                    <TableRow key={token.uuid || token.id}>
-                                        <TableCell>
-                                            {token.plot?.block?.name
-                                                ? `${token.plot.block.name}-${token.plot.plotNo}`
-                                                : `Plot ${token.plot?.plotNo || '—'}`}
-                                        </TableCell>
-                                        <TableCell>
-                                            {currencyCode} {Number(token.amount || 0).toLocaleString()}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={token.status}
-                                                color={TOKEN_STATUS_COLOR[token.status as TOKEN_STATUS] || 'default'}
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            {hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
-                                                <IconButton
-                                                    onClick={() => openEditDialog(token)}
-                                                    color="warning"
-                                                    size="small"
-                                                    aria-label="Edit token"
-                                                >
-                                                    <ModeEditIcon fontSize="small" />
-                                                </IconButton>
-                                            ) : null}
-                                        </TableCell>
+                    isMobile ? (
+                        <Stack spacing={2}>
+                            {tokenRows.map((row) => (
+                                <ListingCard key={row.id} row={row} columns={tokenColumns} />
+                            ))}
+                        </Stack>
+                    ) : (
+                        <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                            <Table size="small" stickyHeader sx={{ minWidth: 680 }}>
+                                <TableHead>
+                                    <TableRow>
+                                        {tokenColumns.map((column) => (
+                                            <TableCell key={column.id} sx={{ minWidth: column.minWidth }}>
+                                                {column.label}
+                                            </TableCell>
+                                        ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                </TableHead>
+                                <TableBody>
+                                    {tokenRows.map((row) => (
+                                        <TableRow hover key={row.id}>
+                                            {tokenColumns.map((column) => (
+                                                <TableCell key={column.id}>{row[column.id]}</TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )
                 )}
             </CardContent>
             <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="md">
