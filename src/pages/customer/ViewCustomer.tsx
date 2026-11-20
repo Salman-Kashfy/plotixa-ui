@@ -218,7 +218,7 @@ function CustomerTokens({ customer }: { customer: Customer }) {
                 {token.status === TOKEN_STATUS.ACTIVE && hasPermission(PERMISSIONS.BOOKING.CREATE) ? (
                     <IconButton
                         component={NavLink}
-                        to={`${ROUTES.BOOKING.CREATE}?tokenId=${encodeURIComponent(token.uuid || token.id)}`}
+                        to={`${ROUTES.BOOKING.CREATE}?tokenUuid=${encodeURIComponent(token.uuid || token.id)}`}
                         color="primary"
                         size="small"
                         aria-label="Create booking"

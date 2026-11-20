@@ -235,12 +235,14 @@ function BookingForm({
     const grandTotal = fixedTotal + installmentTotal;
 
     const fmt = (val: number) => `${currencyCode} ${Math.round(val).toLocaleString()}`;
+    const hasTokenUuid = Boolean(data.tokenUuid);
 
     const onSubmit = (formData: any) => {
+        if (!hasTokenUuid) return;
         const _data: any = {
             ...(projectUuid ? { projectUuid } : {}),
             ...(data.customer?.uuid ? { customerUuid: data.customer.uuid } : {}),
-            ...(data.tokenUuid ? { tokenUuid: data.tokenUuid } : {}),
+            tokenUuid: data.tokenUuid,
             plotId: formData.plotId,
             tokenAmount: n(formData.tokenAmount),
             bookingAmount: n(formData.bookingAmount),
@@ -533,7 +535,7 @@ function BookingForm({
                     variant="contained"
                     type="submit"
                     loading={loading}
-                    disabled={loading || formLoader || Boolean(loadError)}
+                    disabled={loading || formLoader || Boolean(loadError) || !hasTokenUuid}
                     sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                     {btnLabel}

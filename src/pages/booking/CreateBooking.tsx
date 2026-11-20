@@ -15,9 +15,9 @@ function CreateBookingPage() {
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
-    const tokenId = searchParams.get('tokenId');
+    const tokenUuid = searchParams.get('tokenUuid');
     const [loading, setLoading] = useState(false);
-    const [formLoader, setFormLoader] = useState(Boolean(tokenId));
+    const [formLoader, setFormLoader] = useState(Boolean(tokenUuid));
     const [tokenData, setTokenData] = useState<any>({});
     const [loadError, setLoadError] = useState('');
 
@@ -29,7 +29,7 @@ function CreateBookingPage() {
     }, []);
 
     useEffect(() => {
-        if (!tokenId) return;
+        if (!tokenUuid) return;
         if (!adminContext.projectUuid) {
             setLoadError('Select a project before creating a booking from a token.');
             setFormLoader(false);
@@ -38,7 +38,7 @@ function CreateBookingPage() {
 
         setFormLoader(true);
         setLoadError('');
-        GetToken(tokenId, adminContext.projectUuid)
+        GetToken(tokenUuid, adminContext.projectUuid)
             .then((token) => {
                 if (!token?.uuid && !token?.id) {
                     setLoadError('Unable to load the selected token.');
@@ -60,9 +60,15 @@ function CreateBookingPage() {
             })
             .catch(() => setLoadError('Unable to load the selected token.'))
             .finally(() => setFormLoader(false));
-    }, [adminContext.projectUuid, tokenId]);
+    }, [adminContext.projectUuid, tokenUuid]);
 
     const handleSubmit = (data: any) => {
+        if (!data?.tokenUuid) {
+            toastContext.setToastSeverity('error');
+            toastContext.setToastMessage('A token is required to create a booking.');
+            toastContext.setToast(true);
+            return;
+        }
         setLoading(true);
         CreateBooking(data).then((res) => {
             setLoading(false);
@@ -84,7 +90,7 @@ function CreateBookingPage() {
             <PageTitle title="Create Booking" />
             <BookingForm
                 data={tokenData}
-                tokenLocked={Boolean(tokenId)}
+                tokenLocked={Boolean(tokenUuid)}
                 callback={handleSubmit}
                 btnLabel="Create Booking"
                 loading={loading}
