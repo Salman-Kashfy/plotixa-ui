@@ -15,6 +15,10 @@ import { GetPlots } from '../../services/plot.service';
 import { GetCategories } from '../../services/category.service';
 import { AdminContext } from '../../hooks/AdminContext';
 import { TENURE_OPTIONS } from '../../utils/constants';
+import {
+    PreviewInstallmentPlan,
+    type InstallmentPlanItem,
+} from '../../services/booking.service';
 
 type Props = {
     data?: any;
@@ -26,52 +30,7 @@ type Props = {
     loadError?: string;
 };
 
-type InstallmentRow = { month: number; label: string; amount: number; isQuarterly: boolean };
 type CategoryOption = { id?: string; uuid?: string; name: string };
-
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function monthLabel(index: number): string {
-    const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth() + index);
-    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function computeInstallments(
-    plotPrice: number,
-    token: number,
-    booking: number,
-    allocation: number,
-    confirmation: number,
-    startOfWork: number,
-    onPossession: number,
-    quarterly: number,
-    tenure: number,
-): InstallmentRow[] {
-    if (!tenure || !plotPrice) return [];
-    const fixedTotal = token + booking + allocation + confirmation + startOfWork + onPossession;
-    const remaining = plotPrice - fixedTotal;
-    const numQuarterly = Math.floor(tenure / 4);
-    const totalSlots = tenure + numQuarterly;
-    const perSlot = totalSlots > 0 ? remaining / totalSlots : 0;
-
-    const effectiveQuarterly = quarterly > 0 ? quarterly : perSlot;
-    const monthlyBase = numQuarterly > 0
-        ? (remaining - effectiveQuarterly * numQuarterly) / tenure
-        : remaining / tenure;
-
-    const rows: InstallmentRow[] = [];
-    for (let m = 1; m <= tenure; m++) {
-        const isQ = numQuarterly > 0 && m % 4 === 0 && Math.floor(m / 4) <= numQuarterly;
-        rows.push({
-            month: m,
-            label: monthLabel(m - 1),
-            amount: isQ ? monthlyBase + effectiveQuarterly : monthlyBase,
-            isQuarterly: isQ,
-        });
-    }
-    return rows;
-}
 
 function n(val: any) {
     const v = parseFloat(val);
@@ -100,6 +59,9 @@ function BookingForm({
     const [plots, setPlots] = useState<any[]>([]);
     const [plotsLoading, setPlotsLoading] = useState(false);
     const [plotPrice, setPlotPrice] = useState<number>(0);
+    const [installments, setInstallments] = useState<InstallmentPlanItem[]>([]);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError] = useState('');
 
     const defaultValues = {
         plotId: '',
@@ -217,25 +179,75 @@ function BookingForm({
         setValue('plotId', plotId);
     };
 
-    const installments = computeInstallments(
-        plotPrice,
-        n(watched.tokenAmount),
-        n(watched.bookingAmount),
-        n(watched.allocationAmount),
-        n(watched.confirmationAmount),
-        n(watched.startOfWorkAmount),
-        n(watched.onPossessionAmount),
-        n(watched.quarterlyAmount),
-        n(watched.tenure),
+    const isPreviewReady = Boolean(
+        projectUuid
+        && categoryId
+        && watched.plotId
+        && watched.tokenAmount !== ''
+        && watched.bookingAmount !== ''
+        && watched.allocationAmount !== ''
+        && watched.confirmationAmount !== ''
+        && watched.startOfWorkAmount !== ''
+        && watched.onPossessionAmount !== ''
+        && watched.quarterlyAmount !== ''
+        && n(watched.tenure) > 0,
     );
+
+    useEffect(() => {
+        setInstallments([]);
+        setPreviewError('');
+    }, [
+        categoryId,
+        watched.plotId,
+        watched.tokenAmount,
+        watched.bookingAmount,
+        watched.allocationAmount,
+        watched.confirmationAmount,
+        watched.startOfWorkAmount,
+        watched.onPossessionAmount,
+        watched.quarterlyAmount,
+        watched.tenure,
+    ]);
 
     const fixedTotal = n(watched.tokenAmount) + n(watched.bookingAmount) + n(watched.allocationAmount)
         + n(watched.confirmationAmount) + n(watched.startOfWorkAmount) + n(watched.onPossessionAmount);
     const installmentTotal = installments.reduce((s, r) => s + r.amount, 0);
     const grandTotal = fixedTotal + installmentTotal;
 
-    const fmt = (val: number) => `${currencyCode} ${Math.round(val).toLocaleString()}`;
+    const fmt = (val: number) => `${currencyCode} ${Number(val).toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    })}`;
     const hasTokenUuid = Boolean(data.tokenUuid);
+
+    const previewInstallments = () => {
+        if (!isPreviewReady) return;
+        setPreviewLoading(true);
+        setPreviewError('');
+        PreviewInstallmentPlan({
+            projectUuid,
+            categoryUuid: categoryId,
+            plotUuid: watched.plotId as string,
+            tokenAmount: n(watched.tokenAmount),
+            bookingAmount: n(watched.bookingAmount),
+            allocationAmount: n(watched.allocationAmount),
+            confirmationAmount: n(watched.confirmationAmount),
+            startOfWorkAmount: n(watched.startOfWorkAmount),
+            onPossessionAmount: n(watched.onPossessionAmount),
+            quarterlyAmount: n(watched.quarterlyAmount),
+            tenure: n(watched.tenure),
+        }).then((response) => {
+            if (!response.status) {
+                setInstallments([]);
+                setPreviewError(response.message || 'Unable to generate installment plan.');
+                return;
+            }
+            setInstallments(response.data || []);
+        }).catch(() => {
+            setInstallments([]);
+            setPreviewError('Unable to generate installment plan. Please try again.');
+        }).finally(() => setPreviewLoading(false));
+    };
 
     const onSubmit = (formData: any) => {
         if (!hasTokenUuid) return;
@@ -243,7 +255,8 @@ function BookingForm({
             ...(projectUuid ? { projectUuid } : {}),
             ...(data.customer?.uuid ? { customerUuid: data.customer.uuid } : {}),
             tokenUuid: data.tokenUuid,
-            plotId: formData.plotId,
+            categoryUuid: categoryId,
+            plotUuid: formData.plotId,
             tokenAmount: n(formData.tokenAmount),
             bookingAmount: n(formData.bookingAmount),
             allocationAmount: n(formData.allocationAmount),
@@ -252,11 +265,6 @@ function BookingForm({
             onPossessionAmount: n(formData.onPossessionAmount),
             quarterlyAmount: n(formData.quarterlyAmount),
             tenure: n(formData.tenure),
-            installments: installments.map(({ month, label, amount }) => ({
-                month,
-                label,
-                amount: Math.round(amount),
-            })),
         };
         callback(_data);
     };
@@ -449,6 +457,20 @@ function BookingForm({
                         </Grid>
                     </Grid>
 
+                    {previewError ? <Alert severity="error" sx={{ mt: 3 }}>{previewError}</Alert> : null}
+                    <Box sx={{ mt: 3, textAlign: { xs: 'center', sm: 'right' } }}>
+                        <LoadingButton
+                            type="button"
+                            variant="outlined"
+                            loading={previewLoading}
+                            disabled={!isPreviewReady || previewLoading || Boolean(loadError)}
+                            onClick={previewInstallments}
+                            sx={{ width: { xs: '100%', sm: 'auto' } }}
+                        >
+                            Preview Installment Plan
+                        </LoadingButton>
+                    </Box>
+
                     {/* Summary bar */}
                     {plotPrice > 0 && fixedTotal > 0 && (
                         <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
@@ -488,7 +510,7 @@ function BookingForm({
                         <Typography variant="h6" sx={{ mb: 2 }}>
                             Monthly Installment Schedule
                             <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                                ({n(watched.tenure)} months · {Math.floor(n(watched.tenure) / 4)} quarterly)
+                                ({installments.length} installments)
                             </Typography>
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
@@ -504,15 +526,15 @@ function BookingForm({
                                 <TableBody>
                                     {installments.map((row) => (
                                         <TableRow
-                                            key={row.month}
-                                            sx={{ bgcolor: row.isQuarterly ? 'warning.50' : 'inherit' }}
+                                            key={`${row.dueDate}-${row.type}`}
+                                            sx={{ bgcolor: row.type === 'monthly+quaterly' ? 'warning.50' : 'inherit' }}
                                         >
-                                            <TableCell sx={{ fontWeight: 500 }}>{row.label}</TableCell>
-                                            <TableCell sx={{ fontWeight: row.isQuarterly ? 700 : 400 }}>
+                                            <TableCell sx={{ fontWeight: 500 }}>{row.displayLabel}</TableCell>
+                                            <TableCell sx={{ fontWeight: row.type === 'monthly+quaterly' ? 700 : 400 }}>
                                                 {fmt(row.amount)}
                                             </TableCell>
                                             <TableCell>
-                                                {row.isQuarterly
+                                                {row.type === 'monthly+quaterly'
                                                     ? <Chip label="Monthly + Quarterly" color="warning" size="small" />
                                                     : <Chip label="Monthly" size="small" />}
                                             </TableCell>

@@ -1,6 +1,33 @@
 import { apiUrl, constants, emptyListResponse, emptyMutationResponse } from '../utils/constants';
 import { GET, POST } from './api.service.wrapper';
 
+export type InstallmentPlanRequest = {
+    projectUuid: string;
+    categoryUuid: string;
+    plotUuid: string;
+    tokenAmount: number;
+    bookingAmount: number;
+    allocationAmount: number;
+    confirmationAmount: number;
+    startOfWorkAmount: number;
+    onPossessionAmount: number;
+    quarterlyAmount: number;
+    tenure: number;
+};
+
+export type InstallmentPlanItem = {
+    month: string;
+    dueDate: string;
+    displayLabel: string;
+    type: 'monthly' | 'monthly+quaterly';
+    amount: number;
+};
+
+export const PreviewInstallmentPlan = async (data: InstallmentPlanRequest) => {
+    const response: any = await POST(`${apiUrl.bookings}/installment-plan`, data);
+    return response || emptyMutationResponse;
+};
+
 export const GetBookings = async ({ page = 1, limit = constants.PER_PAGE }, params = {}) => {
     const response: any = await GET(apiUrl.bookings, { page, limit, ...params });
     return response?.status ? response : emptyListResponse;
