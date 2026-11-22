@@ -32,7 +32,7 @@ import { GetPayments, type Payment } from '../../services/payment.service';
 import { hasPermission } from '../../utils/permissions';
 import TokenForm from '../token/TokenForm';
 import {
-    PERMISSIONS, ROUTES, TENURE_OPTIONS, TOKEN_STATUS, TOKEN_STATUS_COLOR,
+    PERMISSIONS, ROUTES, TOKEN_STATUS, TOKEN_STATUS_COLOR,
 } from '../../utils/constants';
 
 type TabPanelProps = {
@@ -338,6 +338,8 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         (project: any) => project.uuid === projectUuid,
     )?.currencyCode || '';
     const [bookings, setBookings] = useState<any[]>([]);
+    const [page, setPage] = useState(0);
+    const [paging, setPaging] = useState({ page: 1, perPage: 10, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -351,15 +353,12 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         setError('');
 
         GetBookings(
-            { page: 1, limit: 100 },
+            { page: page + 1, perPage: 10 },
             { projectUuid, customerUuid: customer.uuid },
         ).then((response: any) => {
             if (!active) return;
-            const list = response.data?.list || response.data || [];
-            setBookings(list.filter((booking: any) =>
-                !booking.customer
-                || (booking.customer.uuid || booking.customer.id) === customer.uuid,
-            ));
+            setBookings(response.data?.list || []);
+            setPaging(response.data?.pagination || paging);
         }).catch(() => {
             if (active) setError('Unable to load customer bookings. Please try again.');
         }).finally(() => {
@@ -367,7 +366,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         });
 
         return () => { active = false; };
-    }, [customer.uuid, projectUuid]);
+    }, [customer.uuid, page, projectUuid]);
 
     const toggleBooking = (bookingId: string) => async (_event: SyntheticEvent, open: boolean) => {
         setExpanded((current) => ({ ...current, [bookingId]: open }));
@@ -424,17 +423,23 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', width: '100%' }}>
                                 <Typography fontWeight={600}>
-                                    {booking.plot?.block?.name
-                                        ? `${booking.plot.block.name}-${booking.plot.plotNo}`
-                                        : `Plot ${booking.plot?.plotNo || '—'}`}
+                                    Plot {booking.plot?.plotNo || '—'}
                                 </Typography>
                                 <Typography color="text.secondary">
-                                    {TENURE_OPTIONS.find((option) => option.value === booking.tenure)?.label
-                                        || `${booking.tenure || 0} months`}
+                                    {booking.tenureMonths || 0} months
                                 </Typography>
                                 <Typography color="primary.main" fontWeight={600}>
-                                    {currencyCode} {Number(booking.plot?.price || 0).toLocaleString()}
+                                    {currencyCode} {Number(booking.plotPrice || 0).toLocaleString()}
                                 </Typography>
+                                <Chip
+                                    label={booking.status}
+                                    color={booking.status === 'active'
+                                        ? 'success'
+                                        : booking.status === 'completed'
+                                            ? 'primary'
+                                            : 'default'}
+                                    size="small"
+                                />
                             </Box>
                         </AccordionSummary>
                         <AccordionDetails>
@@ -475,6 +480,16 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                     </Accordion>
                 );
             })}
+            {paging.total > 0 ? (
+                <TablePagination
+                    component="div"
+                    count={paging.total}
+                    rowsPerPage={paging.perPage}
+                    page={page}
+                    onPageChange={(_event, nextPage) => setPage(nextPage)}
+                    rowsPerPageOptions={[]}
+                />
+            ) : null}
         </Stack>
     );
 }

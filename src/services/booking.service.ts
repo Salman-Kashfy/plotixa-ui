@@ -28,9 +28,53 @@ export const PreviewInstallmentPlan = async (data: InstallmentPlanRequest) => {
     return response || emptyMutationResponse;
 };
 
-export const GetBookings = async ({ page = 1, limit = constants.PER_PAGE }, params = {}) => {
-    const response: any = await GET(apiUrl.bookings, { page, limit, ...params });
-    return response?.status ? response : emptyListResponse;
+export type BookingListItem = {
+    uuid: string;
+    dueDayOfMonth: number;
+    plotPrice: string;
+    tokenAmount: string;
+    bookingAmount: string;
+    allocationAmount: string;
+    confirmationAmount: string;
+    startOfWorkAmount: string;
+    onPossessionAmount: string;
+    quarterlyAmount: string;
+    totalUpfront: string;
+    remainingAmount: string;
+    tenureMonths: number;
+    monthlyInstallment: string;
+    status: 'active' | 'completed' | 'cancelled';
+    createdAt: string;
+    plot: { uuid: string; plotNo: number };
+    customer: { uuid: string; firstName: string; lastName: string };
+};
+
+export type BookingListResponse = {
+    status: boolean;
+    data: {
+        list: BookingListItem[];
+        pagination: {
+            page: number;
+            perPage: number;
+            total: number;
+            totalPages: number;
+        };
+    };
+};
+
+export const GetBookings = async (
+    { page = 1, perPage = constants.PER_PAGE },
+    params: { projectUuid: string; customerUuid?: string },
+): Promise<BookingListResponse> => {
+    const response: any = await GET(apiUrl.bookings, { page, perPage, ...params });
+    if (response?.status && response.data) return response;
+    return {
+        status: false,
+        data: {
+            list: [],
+            pagination: { page, perPage, total: 0, totalPages: 0 },
+        },
+    };
 };
 
 export const GetBooking = async (id: string, projectUuid?: string) => {

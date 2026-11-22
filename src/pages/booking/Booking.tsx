@@ -3,7 +3,7 @@ import {
     Card, CardContent, Box, Stack, CircularProgress,
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
-    IconButton,
+    IconButton, Chip,
     useTheme, useMediaQuery,
 } from '@mui/material';
 import { NavLink } from 'react-router-dom';
@@ -12,7 +12,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
-import { ROUTES, constants, PERMISSIONS, TENURE_OPTIONS } from '../../utils/constants';
+import { ROUTES, constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
 import { GetBookings, DeleteBooking } from '../../services/booking.service';
 import PageTitle from '../../components/PageTitle';
@@ -31,7 +31,7 @@ function Booking() {
     )?.currencyCode || '';
 
     const [page, setPage] = useState(0);
-    const [paging, setPaging] = useState({ totalPages: 0, totalResultCount: 0 });
+    const [paging, setPaging] = useState({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<any[]>([]);
 
@@ -43,14 +43,18 @@ function Booking() {
 
     const columns = [
         { id: 'plot',        label: 'Plot',         minWidth: 120 },
+        { id: 'customer',    label: 'Customer',     minWidth: 160 },
         { id: 'plotPrice',   label: 'Plot Price',   minWidth: 130 },
         { id: 'tenure',      label: 'Tenure',       minWidth: 110 },
-        { id: 'token',       label: 'Token',        minWidth: 120 },
-        { id: 'booking',     label: 'Booking',      minWidth: 120 },
+        { id: 'monthly',     label: 'Monthly',      minWidth: 130 },
+        { id: 'status',      label: 'Status',       minWidth: 110 },
         { id: 'actions',     label: 'Actions',      minWidth: 100 },
     ];
 
-    const fmt = (val: number) => `${currencyCode} ${(val || 0).toLocaleString()}`;
+    const fmt = (val: string | number) => `${currencyCode} ${Number(val || 0).toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+    })}`;
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
 
@@ -67,31 +71,52 @@ function Booking() {
 
     const fetchRows = () => {
         if (!loading) setLoading(true);
-        GetBookings({ page: page + 1 }).then((response: any) => {
-            const list = response.data || [];
+        if (!adminContext.projectUuid) {
+            setRows([]);
+            setPaging({ page: 1, perPage: constants.PER_PAGE, total: 0, totalPages: 0 });
+            setLoading(false);
+            return;
+        }
+        GetBookings(
+            { page: page + 1, perPage: constants.PER_PAGE },
+            { projectUuid: adminContext.projectUuid },
+        ).then((response) => {
+            const list = response.data?.list || [];
             setRows(list.map((e: any) => ({
-                id: e.id,
-                plot: e.plot ? `${e.plot.block?.name}-${e.plot.plotNo}` : '—',
-                plotPrice: e.plot?.price ? fmt(e.plot.price) : '—',
-                tenure: TENURE_OPTIONS.find((t) => t.value === e.tenure)?.label || `${e.tenure} mo`,
-                token: e.tokenAmount ? fmt(e.tokenAmount) : '—',
-                booking: e.bookingAmount ? fmt(e.bookingAmount) : '—',
+                id: e.uuid,
+                plot: `Plot ${e.plot?.plotNo || '—'}`,
+                customer: `${e.customer?.firstName || ''} ${e.customer?.lastName || ''}`.trim() || '—',
+                plotPrice: fmt(e.plotPrice),
+                tenure: `${e.tenureMonths} months`,
+                monthly: fmt(e.monthlyInstallment),
+                status: (
+                    <Chip
+                        label={e.status}
+                        color={e.status === 'active' ? 'success' : e.status === 'completed' ? 'primary' : 'default'}
+                        size="small"
+                    />
+                ),
                 actions: (
                     <Box sx={{ display: 'flex' }}>
                         {hasPermission(PERMISSIONS.BOOKING.UPDATE) && (
-                            <IconButton component={NavLink} to={ROUTES.BOOKING.EDIT(e.id)} color="warning" size="small">
+                            <IconButton component={NavLink} to={ROUTES.BOOKING.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
                             </IconButton>
                         )}
                         {hasPermission(PERMISSIONS.BOOKING.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.id)}>
+                            <IconButton color="error" size="small" onClick={() => handleDelete(e.uuid)}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         )}
                     </Box>
                 ),
             })));
-            setPaging(response.paging || { totalPages: 0, totalResultCount: 0 });
+            setPaging(response.data?.pagination || {
+                page: page + 1,
+                perPage: constants.PER_PAGE,
+                total: 0,
+                totalPages: 0,
+            });
             setLoading(false);
         }).catch(() => setLoading(false));
     };
@@ -100,7 +125,7 @@ function Booking() {
         breadcrumbContext.setBreadcrumb([{ name: 'Bookings' }]);
     }, []);
 
-    useEffect(() => { fetchRows(); }, [page]);
+    useEffect(() => { fetchRows(); }, [page, adminContext.projectUuid]);
 
     return (
         <>
@@ -159,8 +184,8 @@ function Booking() {
                         )}
                         <TablePagination
                             component="div"
-                            count={paging.totalResultCount}
-                            rowsPerPage={constants.PER_PAGE}
+                            count={paging.total}
+                            rowsPerPage={paging.perPage}
                             page={page}
                             onPageChange={handleChangePage}
                             rowsPerPageOptions={[]}
