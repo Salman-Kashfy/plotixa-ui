@@ -1,5 +1,5 @@
 import { apiUrl, constants } from '../utils/constants';
-import { GET } from './api.service.wrapper';
+import { GET, POST } from './api.service.wrapper';
 
 export type Payment = {
     uuid: string;
@@ -49,4 +49,17 @@ export const GetPayments = async (
             list: [],
             pagination: { page, perPage, total: 0, totalPages: 0 },
         };
+};
+
+export type PayInstallmentPayload = {
+    projectUuid: string;
+    customerUuid: string;
+    bookingUuid: string;
+    installmentNumber: number;
+    amount: number | string;
+};
+
+export const PayInstallment = async (data: PayInstallmentPayload) => {
+    const response: any = await POST(apiUrl.payments, data);
+    return response || { status: false, message: 'Unable to process payment.' };
 };

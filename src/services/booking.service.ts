@@ -91,6 +91,7 @@ export type Installment = {
     dueDate: string;
     paidDate: string | null;
     status: 'pending' | 'paid' | 'overdue';
+    type?: 'monthly' | 'monthly+quaterly';
 };
 
 export const GetInstallments = async (projectUuid: string, bookingUuid: string) => {
