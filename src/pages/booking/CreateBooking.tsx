@@ -4,7 +4,6 @@ import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES } from '../../utils/constants';
-import { CreateBooking } from '../../services/booking.service';
 import { GetToken } from '../../services/token.service';
 import PageTitle from '../../components/PageTitle';
 import BookingForm from './BookingForm';
