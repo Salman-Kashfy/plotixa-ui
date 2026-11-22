@@ -214,6 +214,7 @@ export const apiUrl = {
     customers: '/customers',
     tokens: '/tokens',
     bookings: '/bookings',
+    installments: '/installments',
     payments: '/payments',
 }
 

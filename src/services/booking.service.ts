@@ -85,6 +85,23 @@ export const GetBooking = async (id: string, projectUuid?: string) => {
     return response?.status ? response.data : {};
 };
 
+export type Installment = {
+    installmentNumber: number;
+    amount: string;
+    dueDate: string;
+    paidDate: string | null;
+    status: 'pending' | 'paid' | 'overdue';
+};
+
+export const GetInstallments = async (projectUuid: string, bookingUuid: string) => {
+    const response: any = await GET(apiUrl.installments, { projectUuid, bookingUuid });
+    return {
+        status: Boolean(response?.status),
+        data: Array.isArray(response?.data) ? response.data as Installment[] : [],
+        message: response?.message,
+    };
+};
+
 export const CreateBooking = async (data: any) => {
     const response: any = await POST(apiUrl.bookings, data as any);
     return response || emptyMutationResponse;

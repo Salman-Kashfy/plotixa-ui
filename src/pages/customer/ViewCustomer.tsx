@@ -26,7 +26,7 @@ import PageTitle from '../../components/PageTitle';
 import AppDialog from '../../components/AppDialog';
 import ListingCard from '../../components/ListingCard';
 import { GetCustomer, type Customer } from '../../services/customer.service';
-import { GetBookings, GetBooking } from '../../services/booking.service';
+import { GetBookings, GetInstallments } from '../../services/booking.service';
 import { GetTokens, UpsertToken, RefundToken, getTokenExpiresInDays } from '../../services/token.service';
 import { GetPayments, type Payment } from '../../services/payment.service';
 import { hasPermission } from '../../utils/permissions';
@@ -375,12 +375,15 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         setDetailLoading((current) => ({ ...current, [bookingId]: true }));
         setDetailErrors((current) => ({ ...current, [bookingId]: '' }));
         try {
-            const details = await GetBooking(bookingId, projectUuid);
-            setBookingDetails((current) => ({ ...current, [bookingId]: details }));
-        } catch {
+            const response = await GetInstallments(projectUuid, bookingId);
+            if (!response.status) {
+                throw new Error(response.message || 'Unable to load the installment plan.');
+            }
+            setBookingDetails((current) => ({ ...current, [bookingId]: response.data }));
+        } catch (error: any) {
             setDetailErrors((current) => ({
                 ...current,
-                [bookingId]: 'Unable to load the installment plan.',
+                [bookingId]: error?.message || 'Unable to load the installment plan.',
             }));
         } finally {
             setDetailLoading((current) => ({ ...current, [bookingId]: false }));
@@ -411,8 +414,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
             ) : null}
             {bookings.map((booking) => {
                 const id = booking.uuid || booking.id;
-                const details = bookingDetails[id] || booking;
-                const installments = details.installments || [];
+                const installments = bookingDetails[id] || [];
                 return (
                     <Accordion
                         key={id}
@@ -455,18 +457,35 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>Month</TableCell>
-                                                <TableCell>Due Date / Label</TableCell>
+                                                <TableCell>#</TableCell>
+                                                <TableCell>Due Date</TableCell>
+                                                <TableCell>Paid Date</TableCell>
+                                                <TableCell>Status</TableCell>
                                                 <TableCell align="right">Amount</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {installments.map((installment: any) => (
-                                                <TableRow key={installment.uuid || installment.id || installment.month}>
-                                                    <TableCell>{installment.month}</TableCell>
-                                                    <TableCell>{installment.label || '—'}</TableCell>
+                                                <TableRow key={installment.installmentNumber}>
+                                                    <TableCell>{installment.installmentNumber}</TableCell>
+                                                    <TableCell>{installment.dueDate || '—'}</TableCell>
+                                                    <TableCell>{installment.paidDate || '—'}</TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={installment.status}
+                                                            color={installment.status === 'paid'
+                                                                ? 'success'
+                                                                : installment.status === 'overdue'
+                                                                    ? 'error'
+                                                                    : 'default'}
+                                                            size="small"
+                                                        />
+                                                    </TableCell>
                                                     <TableCell align="right">
-                                                        {currencyCode} {Number(installment.amount || 0).toLocaleString()}
+                                                        {currencyCode} {Number(installment.amount || 0).toLocaleString(undefined, {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2,
+                                                        })}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -474,7 +493,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                                     </Table>
                                 </TableContainer>
                             ) : (
-                                <Typography color="text.secondary">No installment plan is available.</Typography>
+                                <Typography color="text.secondary">No installments found.</Typography>
                             )}
                         </AccordionDetails>
                     </Accordion>
