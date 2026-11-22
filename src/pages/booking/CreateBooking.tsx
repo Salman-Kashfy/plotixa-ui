@@ -63,26 +63,17 @@ function CreateBookingPage() {
     }, [adminContext.projectUuid, tokenUuid]);
 
     const handleSubmit = (data: any) => {
-        if (!data?.tokenUuid) {
+        if (!data?.data.uuid) {
             toastContext.setToastSeverity('error');
             toastContext.setToastMessage('A token is required to create a booking.');
             toastContext.setToast(true);
             return;
         }
-        setLoading(true);
-        CreateBooking(data).then((res) => {
-            setLoading(false);
-            if (res.status) {
-                toastContext.setToastSeverity('success');
-                toastContext.setToastMessage(res.message || 'Booking created successfully.');
-                toastContext.setToast(true);
-                navigate(ROUTES.BOOKING.LIST);
-            } else {
-                toastContext.setToastSeverity('error');
-                toastContext.setToastMessage(res.message || 'Something went wrong.');
-                toastContext.setToast(true);
-            }
-        }).catch(() => setLoading(false));
+        setLoading(false);
+        toastContext.setToastSeverity('success');
+        toastContext.setToastMessage('Booking created successfully.');
+        toastContext.setToast(true);
+        navigate(ROUTES.BOOKING.LIST);
     };
 
     return (

@@ -17,6 +17,7 @@ import { AdminContext } from '../../hooks/AdminContext';
 import { TENURE_OPTIONS } from '../../utils/constants';
 import {
     PreviewInstallmentPlan,
+    CreateBooking,
     type InstallmentPlanItem,
 } from '../../services/booking.service';
 
@@ -36,6 +37,8 @@ function n(val: any) {
     const v = parseFloat(val);
     return isNaN(v) ? 0 : v;
 }
+
+const DUE_DAY_OPTIONS = Array.from({ length: 28 }, (_, i) => i + 1);
 
 function BookingForm({
     data = {},
@@ -62,6 +65,8 @@ function BookingForm({
     const [installments, setInstallments] = useState<InstallmentPlanItem[]>([]);
     const [previewLoading, setPreviewLoading] = useState(false);
     const [previewError, setPreviewError] = useState('');
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     const defaultValues = {
         plotId: '',
@@ -73,6 +78,7 @@ function BookingForm({
         onPossessionAmount: '',
         quarterlyAmount: '',
         tenure: '',
+        dueDayOfMonth: 1,
     };
 
     const { control, handleSubmit, reset, setValue } = useForm({
@@ -87,6 +93,7 @@ function BookingForm({
             onPossessionAmount: data.onPossessionAmount || '',
             quarterlyAmount: data.quarterlyAmount || '',
             tenure: data.tenure || '',
+            dueDayOfMonth: data.dueDayOfMonth || 1,
         },
     });
 
@@ -113,15 +120,9 @@ function BookingForm({
 
         setCategoriesLoading(true);
         GetCategories({ projectUuid })
-            .then((items) => {
-                if (active) setCategories(items);
-            })
-            .catch(() => {
-                if (active) setCategories([]);
-            })
-            .finally(() => {
-                if (active) setCategoriesLoading(false);
-            });
+            .then((items) => { if (active) setCategories(items); })
+            .catch(() => { if (active) setCategories([]); })
+            .finally(() => { if (active) setCategoriesLoading(false); });
 
         return () => { active = false; };
     }, [projectUuid, setValue, tokenLocked]);
@@ -151,7 +152,6 @@ function BookingForm({
         return () => { active = false; };
     }, [categoryId, projectUuid, tokenLocked]);
 
-    // Populate edit data
     useEffect(() => {
         if (Object.keys(data).length) {
             if (data.plot) {
@@ -169,6 +169,7 @@ function BookingForm({
                 onPossessionAmount: data.onPossessionAmount || '',
                 quarterlyAmount: data.quarterlyAmount || '',
                 tenure: data.tenure || '',
+                dueDayOfMonth: data.dueDayOfMonth || 1,
             });
         }
     }, [data, reset]);
@@ -218,6 +219,7 @@ function BookingForm({
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
     })}`;
+
     const hasTokenUuid = Boolean(data.tokenUuid);
 
     const previewInstallments = () => {
@@ -249,24 +251,37 @@ function BookingForm({
         }).finally(() => setPreviewLoading(false));
     };
 
-    const onSubmit = (formData: any) => {
+    const onSubmit = async (formData: any) => {
         if (!hasTokenUuid) return;
-        const _data: any = {
-            ...(projectUuid ? { projectUuid } : {}),
-            ...(data.customer?.uuid ? { customerUuid: data.customer.uuid } : {}),
-            tokenUuid: data.tokenUuid,
-            categoryUuid: categoryId,
-            plotUuid: formData.plotId,
-            tokenAmount: n(formData.tokenAmount),
-            bookingAmount: n(formData.bookingAmount),
-            allocationAmount: n(formData.allocationAmount),
-            confirmationAmount: n(formData.confirmationAmount),
-            startOfWorkAmount: n(formData.startOfWorkAmount),
-            onPossessionAmount: n(formData.onPossessionAmount),
-            quarterlyAmount: n(formData.quarterlyAmount),
-            tenure: n(formData.tenure),
-        };
-        callback(_data);
+        setSubmitError('');
+        setSubmitLoading(true);
+        try {
+            const response = await CreateBooking({
+                ...(projectUuid ? { projectUuid } : {}),
+                ...(data.customer?.uuid ? { customerUuid: data.customer.uuid } : {}),
+                tokenUuid: data.tokenUuid,
+                categoryUuid: categoryId,
+                plotUuid: formData.plotId,
+                tokenAmount: n(formData.tokenAmount),
+                bookingAmount: n(formData.bookingAmount),
+                allocationAmount: n(formData.allocationAmount),
+                confirmationAmount: n(formData.confirmationAmount),
+                startOfWorkAmount: n(formData.startOfWorkAmount),
+                onPossessionAmount: n(formData.onPossessionAmount),
+                quarterlyAmount: n(formData.quarterlyAmount),
+                tenure: n(formData.tenure),
+                dueDayOfMonth: n(formData.dueDayOfMonth),
+            });
+            if (!response.status) {
+                setSubmitError(response.message || 'Failed to create booking.');
+                return;
+            }
+            callback(response);
+        } catch {
+            setSubmitError('Failed to create booking. Please try again.');
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     const amountField = (name: string, label: string) => (
@@ -302,6 +317,10 @@ function BookingForm({
             {loadError ? (
                 <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>
             ) : null}
+            {submitError ? (
+                <Alert severity="error" sx={{ mb: 3 }}>{submitError}</Alert>
+            ) : null}
+
             {tokenLocked && data.customer ? (
                 <Card sx={{ mb: 3 }}>
                     <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
@@ -317,6 +336,7 @@ function BookingForm({
                     </CardContent>
                 </Card>
             ) : null}
+
             {/* ── Category & Plot selection ── */}
             <Card sx={{ mb: 3 }}>
                 <ProgressBar formLoader={loading || formLoader}>{null}</ProgressBar>
@@ -336,7 +356,6 @@ function BookingForm({
                             </Grid>
                         ) : null}
 
-                        {/* Category */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <FormControl variant="standard" fullWidth>
                                 <InputLabel>Category</InputLabel>
@@ -358,15 +377,14 @@ function BookingForm({
                                             {data.plot?.category?.name || 'Selected category'}
                                         </MenuItem>
                                     ) : categories.map((c) => (
-                                            <MenuItem key={c.uuid || c.id} value={c.uuid || c.id}>
-                                                {c.name}
-                                            </MenuItem>
-                                        ))}
+                                        <MenuItem key={c.uuid || c.id} value={c.uuid || c.id}>
+                                            {c.name}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
 
-                        {/* Plot */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
                                 name="plotId"
@@ -407,7 +425,6 @@ function BookingForm({
                             />
                         </Grid>
 
-                        {/* Plot price display */}
                         {plotPrice > 0 && (
                             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                 <Typography variant="body2" color="text.secondary">Plot Price</Typography>
@@ -420,7 +437,7 @@ function BookingForm({
                 </CardContent>
             </Card>
 
-            {/* ── Payment breakdown ── */}
+            {/* ── Payment Breakdown ── */}
             <Card sx={{ mb: 3 }}>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Typography variant="h6" sx={{ mb: 3 }}>Payment Breakdown</Typography>
@@ -433,7 +450,6 @@ function BookingForm({
                         {amountField('onPossessionAmount', 'On Possession Amount')}
                         {amountField('quarterlyAmount', 'Quarterly Amount')}
 
-                        {/* Tenure */}
                         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                             <Controller
                                 name="tenure"
@@ -448,6 +464,29 @@ function BookingForm({
                                                 <MenuItem key={opt.value} value={opt.value}>
                                                     {opt.label}
                                                 </MenuItem>
+                                            ))}
+                                        </Select>
+                                        {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
+                                    </FormControl>
+                                )}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Controller
+                                name="dueDayOfMonth"
+                                control={control}
+                                rules={{
+                                    required: { value: true, message: 'Due day is required' },
+                                    min: { value: 1, message: 'Must be between 1 and 28' },
+                                    max: { value: 28, message: 'Must be between 1 and 28' },
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <FormControl variant="standard" fullWidth error={!!error}>
+                                        <InputLabel>Installment Due Day</InputLabel>
+                                        <Select {...field} label="Installment Due Day">
+                                            {DUE_DAY_OPTIONS.map((day) => (
+                                                <MenuItem key={day} value={day}>{day}</MenuItem>
                                             ))}
                                         </Select>
                                         {error && <FormHelperText sx={{ ml: 0 }}>{error.message}</FormHelperText>}
@@ -471,7 +510,6 @@ function BookingForm({
                         </LoadingButton>
                     </Box>
 
-                    {/* Summary bar */}
                     {plotPrice > 0 && fixedTotal > 0 && (
                         <Box sx={{ mt: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
                             <Grid container spacing={2}>
@@ -556,8 +594,8 @@ function BookingForm({
                 <LoadingButton
                     variant="contained"
                     type="submit"
-                    loading={loading}
-                    disabled={loading || formLoader || Boolean(loadError) || !hasTokenUuid}
+                    loading={submitLoading}
+                    disabled={submitLoading || formLoader || Boolean(loadError) || !hasTokenUuid}
                     sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                     {btnLabel}
