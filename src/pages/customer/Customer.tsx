@@ -85,6 +85,13 @@ function Customer() {
     const fetchRows = () => {
         if (!loading) setLoading(true);
         setLoadError('');
+        if (phoneFilter && phoneFilter.length < 3) {
+            setRows([]);
+            setPaging({ total: 0 });
+            setLoading(false);
+            setPage(0);
+            return;
+        }
         if (!projectUuid) {
             setRows([]);
             setPaging({ total: 0 });

@@ -4,7 +4,7 @@ import {
     CardContent, Chip, CircularProgress, Divider, IconButton, Stack, Tab, Tabs,
     Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography,
     Dialog, DialogActions, DialogContent, DialogTitle,
-    useMediaQuery, useTheme,
+    useMediaQuery, useTheme, Tooltip,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,8 +17,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import UndoIcon from '@mui/icons-material/Undo';
 import BookingIcon from '@mui/icons-material/EventAvailable';
-import { NavLink } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { NavLink, useParams, useSearchParams } from 'react-router-dom';
 import { AdminContext } from '../../hooks/AdminContext';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
@@ -226,15 +225,18 @@ function CustomerTokens({ customer }: { customer: Customer }) {
                         <BookingIcon fontSize="small" />
                     </IconButton>
                 ) : null}
-                {token.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
-                    <IconButton
-                        onClick={() => setRefundTarget(token)}
-                        color="warning"
-                        size="small"
-                        aria-label="Refund token"
-                    >
-                        <UndoIcon fontSize="small" />
-                    </IconButton>
+                {(token.status === TOKEN_STATUS.ACTIVE || token.status === TOKEN_STATUS.EXPIRED)
+                    && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+                    <Tooltip title="Refund token">
+                        <IconButton
+                            onClick={() => setRefundTarget(token)}
+                            color="warning"
+                            size="small"
+                            aria-label="Refund token"
+                        >
+                            <UndoIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
                 ) : null}
             </Box>
         ),
@@ -331,7 +333,13 @@ function CustomerTokens({ customer }: { customer: Customer }) {
     );
 }
 
-function CustomerBookings({ customer }: { customer: Customer }) {
+function CustomerBookings({
+    customer,
+    targetBookingUuid,
+}: {
+    customer: Customer;
+    targetBookingUuid?: string;
+}) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const adminContext: any = useContext(AdminContext);
@@ -357,21 +365,57 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         setLoading(true);
         setError('');
 
-        GetBookings(
-            { page: page + 1, perPage: 10 },
-            { projectUuid, customerUuid: customer.uuid },
-        ).then((response: any) => {
-            if (!active) return;
-            setBookings(response.data?.list || []);
-            setPaging(response.data?.pagination || paging);
-        }).catch(() => {
+        const loadBookings = async () => {
+            try {
+                if (targetBookingUuid) {
+                    let targetPage = 1;
+                    let targetList: any[] = [];
+                    let pagination: any = null;
+
+                    while (targetPage <= 100) {
+                        const response: any = await GetBookings(
+                            { page: targetPage, perPage: 10 },
+                            { projectUuid, customerUuid: customer.uuid },
+                        );
+                        if (!active) return;
+
+                        const list = response.data?.list || [];
+                        pagination = response.data?.pagination;
+                        if (list.some((booking: any) => (booking.uuid || booking.id) === targetBookingUuid)) {
+                            targetList = list;
+                            setPage(targetPage - 1);
+                            break;
+                        }
+
+                        if (!pagination?.totalPages || targetPage >= pagination.totalPages) {
+                            targetList = list;
+                            break;
+                        }
+                        targetPage += 1;
+                    }
+
+                    setBookings(targetList);
+                    setPaging(pagination || paging);
+                } else {
+                    const response: any = await GetBookings(
+                        { page: page + 1, perPage: 10 },
+                        { projectUuid, customerUuid: customer.uuid },
+                    );
+                    if (!active) return;
+                    setBookings(response.data?.list || []);
+                    setPaging(response.data?.pagination || paging);
+                }
+            } catch {
             if (active) setError('Unable to load customer bookings. Please try again.');
-        }).finally(() => {
-            if (active) setLoading(false);
-        });
+            } finally {
+                if (active) setLoading(false);
+            }
+        };
+
+        loadBookings();
 
         return () => { active = false; };
-    }, [customer.uuid, page, projectUuid]);
+    }, [customer.uuid, page, projectUuid, targetBookingUuid]);
 
     const toggleBooking = (bookingId: string) => async (_event: SyntheticEvent, open: boolean) => {
         setExpanded((current) => ({ ...current, [bookingId]: open }));
@@ -394,6 +438,35 @@ function CustomerBookings({ customer }: { customer: Customer }) {
             setDetailLoading((current) => ({ ...current, [bookingId]: false }));
         }
     };
+
+    useEffect(() => {
+        if (!targetBookingUuid || !bookings.length) return;
+        if (!bookings.some((booking) => (booking.uuid || booking.id) === targetBookingUuid)) return;
+        if (bookingDetails[targetBookingUuid]) {
+            setExpanded((current) => ({ ...current, [targetBookingUuid]: true }));
+            return;
+        }
+
+        setExpanded((current) => ({ ...current, [targetBookingUuid]: true }));
+        setDetailLoading((current) => ({ ...current, [targetBookingUuid]: true }));
+        setDetailErrors((current) => ({ ...current, [targetBookingUuid]: '' }));
+        GetInstallments(projectUuid, targetBookingUuid)
+            .then((response) => {
+                if (!response.status) {
+                    throw new Error(response.message || 'Unable to load the installment plan.');
+                }
+                setBookingDetails((current) => ({ ...current, [targetBookingUuid]: response.data }));
+            })
+            .catch((error: any) => {
+                setDetailErrors((current) => ({
+                    ...current,
+                    [targetBookingUuid]: error?.message || 'Unable to load the installment plan.',
+                }));
+            })
+            .finally(() => {
+                setDetailLoading((current) => ({ ...current, [targetBookingUuid]: false }));
+            });
+    }, [targetBookingUuid, bookings, projectUuid]);
 
     const payInstallment = () => {
         if (!paymentTarget) return;
@@ -822,10 +895,17 @@ function CustomerPayments({ customer }: { customer: Customer }) {
 
 function ViewCustomer() {
     const { uuid } = useParams<{ uuid: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const adminContext: any = useContext(AdminContext);
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const projectUuid = adminContext.projectUuid || '';
-    const [tab, setTab] = useState(0);
+    const tabNames = ['details', 'tokens', 'bookings', 'payments'];
+    const bookingUuid = searchParams.get('bookingUuid') || '';
+    const tabParam = searchParams.get('tab');
+    const initialTab = bookingUuid
+        ? 2
+        : tabNames.includes(tabParam || '') ? tabNames.indexOf(tabParam || '') : 0;
+    const [tab, setTab] = useState(initialTab);
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -836,6 +916,12 @@ function ViewCustomer() {
             { name: customer ? `${customer.firstName} ${customer.lastName}`.trim() : 'Customer' },
         ]);
     }, [customer]);
+
+    useEffect(() => {
+        if (bookingUuid) setTab(2);
+        else if (tabNames.includes(tabParam || '')) setTab(tabNames.indexOf(tabParam || ''));
+        else setTab(0);
+    }, [bookingUuid, tabParam]);
 
     useEffect(() => {
         if (!uuid || !projectUuid) {
@@ -880,7 +966,13 @@ function ViewCustomer() {
                     <Card>
                         <Tabs
                             value={tab}
-                            onChange={(_event: SyntheticEvent, value: number) => setTab(value)}
+                            onChange={(_event: SyntheticEvent, value: number) => {
+                                setTab(value);
+                                const nextParams = new URLSearchParams(searchParams);
+                                nextParams.set('tab', tabNames[value]);
+                                if (value !== 2) nextParams.delete('bookingUuid');
+                                setSearchParams(nextParams);
+                            }}
                             variant="scrollable"
                             scrollButtons="auto"
                             aria-label="Customer profile sections"
@@ -893,7 +985,9 @@ function ViewCustomer() {
                     </Card>
                     <TabPanel active={tab === 0}><CustomerDetails customer={customer} /></TabPanel>
                     <TabPanel active={tab === 1}><CustomerTokens customer={customer} /></TabPanel>
-                    <TabPanel active={tab === 2}><CustomerBookings customer={customer} /></TabPanel>
+                    <TabPanel active={tab === 2}>
+                        <CustomerBookings customer={customer} targetBookingUuid={bookingUuid} />
+                    </TabPanel>
                     <TabPanel active={tab === 3}>
                         <CustomerPayments customer={customer} />
                     </TabPanel>

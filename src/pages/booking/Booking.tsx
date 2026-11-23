@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, constants, PERMISSIONS } from '../../utils/constants';
@@ -84,6 +85,17 @@ function Booking() {
                 ),
                 actions: (
                     <Box sx={{ display: 'flex' }}>
+                        {e.customer?.uuid ? (
+                            <IconButton
+                                component={NavLink}
+                                to={`${ROUTES.CUSTOMER.VIEW(e.customer.uuid)}?tab=bookings&bookingUuid=${encodeURIComponent(e.uuid)}`}
+                                color="primary"
+                                size="small"
+                                aria-label="View customer booking"
+                            >
+                                <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                        ) : null}
                         {hasPermission(PERMISSIONS.BOOKING.UPDATE) && (
                             <IconButton component={NavLink} to={ROUTES.BOOKING.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />

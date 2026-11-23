@@ -4,7 +4,7 @@ import {
     Table, TableBody, TableCell, TableContainer,
     TableFooter, TableHead, TablePagination, TableRow,
     Chip, FormControl, InputLabel, Select, MenuItem,
-    useTheme, useMediaQuery, IconButton,
+    useTheme, useMediaQuery, IconButton, Tooltip,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import UndoIcon from '@mui/icons-material/Undo';
@@ -42,7 +42,7 @@ function Token() {
     const [refunding, setRefunding] = useState(false);
 
     // Filters
-    const [status, setStatus] = useState<TokenStatus | ''>('');
+    const [status, setStatus] = useState<TokenStatus | ''>(TOKEN_STATUS.ACTIVE);
 
     const columns = [
         { id: 'customer',  label: 'Customer',  minWidth: 160 },
@@ -97,15 +97,18 @@ function Token() {
                                 <BookingIcon fontSize="small" />
                             </IconButton>
                         ) : null}
-                        {e.status !== TOKEN_STATUS.REFUNDED && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
-                            <IconButton
-                                onClick={() => setRefundTarget(e)}
-                                color="warning"
-                                size="small"
-                                aria-label={`Refund token for ${e.customer?.firstName || 'customer'}`}
-                            >
-                                <UndoIcon fontSize="small" />
-                            </IconButton>
+                        {(e.status === TOKEN_STATUS.ACTIVE || e.status === TOKEN_STATUS.EXPIRED)
+                            && hasPermission(PERMISSIONS.TOKEN.UPDATE) ? (
+                            <Tooltip title="Refund token">
+                                <IconButton
+                                    onClick={() => setRefundTarget(e)}
+                                    color="warning"
+                                    size="small"
+                                    aria-label={`Refund token for ${e.customer?.firstName || 'customer'}`}
+                                >
+                                    <UndoIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
                         ) : null}
                     </Box>
                 ),
