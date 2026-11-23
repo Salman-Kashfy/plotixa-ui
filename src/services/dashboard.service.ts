@@ -1,12 +1,14 @@
 import {apiUrl} from "../utils/constants";
-import {POST,GET} from "./api.service.wrapper";
+import { GET } from "./api.service.wrapper";
 
-interface DashboardStatsInput {
-    gymId?: string,
-    start: any,
-    end: any
+export interface DashboardStatsData {
+    totalPlots: number;
+    reservedPlots: number;
+    bookedPlots: number;
+    soldPlots: number;
+    overduePayments: number;
 }
 
-export const DashboardStats = async (params:DashboardStatsInput) => {
-    return GET(apiUrl.dashboardStats, params);
+export const DashboardStats = async (projectUuid: string) => {
+    return GET(apiUrl.dashboardStats, { projectUuid });
 }

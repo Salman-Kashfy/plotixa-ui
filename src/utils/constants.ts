@@ -204,7 +204,7 @@ export const apiUrl = {
     resetPassword: '/reset-password',
     invite: '/invite',
     validateInvite: '/validate-invite',
-    dashboardStats: '/dashboard-stats',
+    dashboardStats: '/dashboardStats',
     expenses: '/expenses',
     expenseTypes: '/expense-types',
     plots: '/plots',
@@ -578,6 +578,7 @@ export const PLOT_AREA_OPTIONS = [80, 120, 240];
 export enum PLOT_STATUS {
     ACTIVE = 'ACTIVE',
     RESERVED = 'RESERVED',
+    BOOKED = 'BOOKED',
     SOLD = 'SOLD',
 }
 
@@ -593,6 +594,7 @@ export const TENURE_OPTIONS = [
 export const PLOT_STATUS_COLOR: Record<PLOT_STATUS, 'success' | 'warning' | 'info' | 'error'> = {
     [PLOT_STATUS.ACTIVE]: 'success',
     [PLOT_STATUS.RESERVED]: 'warning',
+    [PLOT_STATUS.BOOKED]: 'info',
     [PLOT_STATUS.SOLD]: 'error',
 };
 
