@@ -86,6 +86,7 @@ export const GetBooking = async (id: string, projectUuid?: string) => {
 };
 
 export type Installment = {
+    uuid: string;
     installmentNumber: number;
     amount: string;
     dueDate: string;
@@ -101,6 +102,14 @@ export const GetInstallments = async (projectUuid: string, bookingUuid: string) 
         data: Array.isArray(response?.data) ? response.data as Installment[] : [],
         message: response?.message,
     };
+};
+
+export const PayInstallment = async (projectUuid: string, installmentUuid: string) => {
+    const response: any = await POST(`${apiUrl.installments}/pay`, {
+        projectUuid,
+        installmentUuid,
+    });
+    return response || { status: false, message: 'Unable to pay installment.' };
 };
 
 export const CreateBooking = async (data: any) => {

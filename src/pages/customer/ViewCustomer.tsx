@@ -332,6 +332,8 @@ function CustomerTokens({ customer }: { customer: Customer }) {
 }
 
 function CustomerBookings({ customer }: { customer: Customer }) {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const adminContext: any = useContext(AdminContext);
     const projectUuid = adminContext.projectUuid || '';
     const currencyCode = adminContext.projects?.find(
@@ -398,10 +400,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
         setPaying(true);
         PayInstallment({
             projectUuid,
-            customerUuid: paymentTarget.booking.customer?.uuid || customer.uuid,
-            bookingUuid: paymentTarget.booking.uuid,
-            installmentNumber: paymentTarget.installment.installmentNumber,
-            amount: paymentTarget.installment.amount,
+            installmentUuid: paymentTarget.installment.uuid,
         }).then((response) => {
             if (!response.status) {
                 toastContext.setToastSeverity('error');
@@ -414,6 +413,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
             toastContext.setToast(true);
             setPaymentTarget(null);
             const bookingId = paymentTarget.booking.uuid;
+            const paidDate = response.data?.paidDate || dayjs().format('YYYY-MM-DD');
             setBookingDetails((current) => ({
                 ...current,
                 [bookingId]: (current[bookingId] || []).map((installment: any) =>
@@ -421,7 +421,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                         ? {
                             ...installment,
                             status: 'paid',
-                            paidDate: dayjs().format('YYYY-MM-DD'),
+                            paidDate,
                         }
                         : installment,
                 ),
@@ -434,7 +434,7 @@ function CustomerBookings({ customer }: { customer: Customer }) {
     };
 
     const formatDate = (value?: string | null) =>
-        value ? dayjs(value).format('D MMMM YYYY') : '—';
+        value ? dayjs(value).format('D MMM YYYY') : '—';
     const formatAmount = (value?: string | number | null) =>
         `${currencyCode} ${Number(value || 0).toLocaleString(undefined, {
             minimumFractionDigits: 2,
@@ -533,33 +533,19 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                             ) : detailErrors[id] ? (
                                 <Alert severity="error">{detailErrors[id]}</Alert>
                             ) : installments.length ? (
-                                <TableContainer>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>#</TableCell>
-                                                <TableCell>Due Date</TableCell>
-                                                <TableCell>Paid Date</TableCell>
-                                                <TableCell>Type</TableCell>
-                                                <TableCell align="right">Amount</TableCell>
-                                                <TableCell align="right">Status</TableCell>
-                                                <TableCell align="right">Actions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {installments.map((installment: any) => (
-                                                <TableRow key={installment.installmentNumber}>
-                                                    <TableCell>{installment.installmentNumber}</TableCell>
-                                                    <TableCell>{formatDate(installment.dueDate)}</TableCell>
-                                                    <TableCell>{formatDate(installment.paidDate)}</TableCell>
-                                                    <TableCell>{installmentType(installment)}</TableCell>
-                                                    <TableCell align="right">
-                                                        {currencyCode} {Number(installment.amount || 0).toLocaleString(undefined, {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2,
-                                                        })}
-                                                    </TableCell>
-                                                    <TableCell align="right">
+                                isMobile ? (
+                                    <Stack spacing={1.5}>
+                                        {installments.map((installment: any) => (
+                                            <ListingCard
+                                                key={installment.uuid || installment.installmentNumber}
+                                                row={{
+                                                    id: installment.uuid || String(installment.installmentNumber),
+                                                    installment: `Installment ${installment.installmentNumber}`,
+                                                    dueDate: formatDate(installment.dueDate),
+                                                    paidDate: formatDate(installment.paidDate),
+                                                    type: installmentType(installment),
+                                                    amount: formatAmount(installment.amount),
+                                                    status: (
                                                         <Chip
                                                             label={installment.status}
                                                             color={installment.status === 'paid'
@@ -569,25 +555,85 @@ function CustomerBookings({ customer }: { customer: Customer }) {
                                                                     : 'warning'}
                                                             size="small"
                                                         />
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        {installment.status !== 'paid' ? (
-                                                            <Button
-                                                                onClick={() => setPaymentTarget({ booking, installment })}
-                                                                color="primary"
-                                                                size="small"
-                                                                variant="text"
-                                                                sx={{ minWidth: 'auto', px: 1 }}
-                                                            >
-                                                                PAY
-                                                            </Button>
-                                                        ) : null}
-                                                    </TableCell>
+                                                    ),
+                                                    actions: installment.status !== 'paid' && installment.uuid ? (
+                                                        <Button
+                                                            onClick={() => setPaymentTarget({ booking, installment })}
+                                                            color="primary"
+                                                            size="small"
+                                                            variant="text"
+                                                            sx={{ minWidth: 'auto', px: 1 }}
+                                                        >
+                                                            PAY
+                                                        </Button>
+                                                    ) : null,
+                                                }}
+                                                columns={[
+                                                    { id: 'installment', label: 'Installment', minWidth: 120 },
+                                                    { id: 'dueDate', label: 'Due Date', minWidth: 140 },
+                                                    { id: 'paidDate', label: 'Paid Date', minWidth: 140 },
+                                                    { id: 'type', label: 'Type', minWidth: 160 },
+                                                    { id: 'amount', label: 'Amount', minWidth: 120 },
+                                                    { id: 'status', label: 'Status', minWidth: 100 },
+                                                    { id: 'actions', label: 'Actions', minWidth: 80 },
+                                                ]}
+                                            />
+                                        ))}
+                                    </Stack>
+                                ) : (
+                                    <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                                        <Table size="small" sx={{ minWidth: 760 }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>#</TableCell>
+                                                    <TableCell>Due Date</TableCell>
+                                                    <TableCell>Paid Date</TableCell>
+                                                    <TableCell>Type</TableCell>
+                                                    <TableCell align="right">Amount</TableCell>
+                                                    <TableCell align="right">Status</TableCell>
+                                                    <TableCell align="right">Actions</TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                            </TableHead>
+                                            <TableBody>
+                                                {installments.map((installment: any) => (
+                                                    <TableRow key={installment.installmentNumber}>
+                                                        <TableCell>{installment.installmentNumber}</TableCell>
+                                                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(installment.dueDate)}</TableCell>
+                                                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(installment.paidDate)}</TableCell>
+                                                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{installmentType(installment)}</TableCell>
+                                                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                                                            {formatAmount(installment.amount)}
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <Chip
+                                                                label={installment.status}
+                                                                color={installment.status === 'paid'
+                                                                    ? 'success'
+                                                                    : installment.status === 'overdue'
+                                                                        ? 'error'
+                                                                        : 'warning'}
+                                                                size="small"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            {installment.status !== 'paid' && installment.uuid ? (
+                                                                <Button
+                                                                    onClick={() => setPaymentTarget({ booking, installment })}
+                                                                    color="primary"
+                                                                    size="small"
+                                                                    variant="text"
+                                                                    sx={{ minWidth: 'auto', px: 1 }}
+                                                                >
+                                                                    PAY
+                                                                </Button>
+                                                            ) : null}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                )
                             ) : (
                                 <Typography color="text.secondary">No installments found.</Typography>
                             )}
@@ -608,10 +654,10 @@ function CustomerBookings({ customer }: { customer: Customer }) {
             <AppDialog
                 open={Boolean(paymentTarget)}
                 handleDialogClose={() => !paying && setPaymentTarget(null)}
-                title="Pay Installment"
+                title={'Pay Installment'}
                 body={paymentTarget
-                    ? `Pay ${formatAmount(paymentTarget.installment.amount)} for installment ${paymentTarget.installment.installmentNumber}?`
-                    : ''}
+                ? <>Pay installment {paymentTarget.installment.installmentNumber} — <strong>{formatDate(paymentTarget.installment.dueDate)}</strong> ({formatAmount(paymentTarget.installment.amount)})</>
+                : ''}
                 dialogBtnLoading={paying}
                 dialogBtnLabel="Pay"
                 onSubmit={payInstallment}

@@ -53,13 +53,10 @@ export const GetPayments = async (
 
 export type PayInstallmentPayload = {
     projectUuid: string;
-    customerUuid: string;
-    bookingUuid: string;
-    installmentNumber: number;
-    amount: number | string;
+    installmentUuid: string;
 };
 
 export const PayInstallment = async (data: PayInstallmentPayload) => {
-    const response: any = await POST(apiUrl.payments, data);
+    const response: any = await POST(`${apiUrl.installments}/pay`, data);
     return response || { status: false, message: 'Unable to process payment.' };
 };
