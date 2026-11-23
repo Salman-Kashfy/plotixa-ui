@@ -8,13 +8,11 @@ import {
 } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
-import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
 import { ROUTES, constants, PERMISSIONS } from '../../utils/constants';
 import { hasPermission } from '../../utils/permissions';
-import { GetBookings, DeleteBooking } from '../../services/booking.service';
+import { GetBookings } from '../../services/booking.service';
 import PageTitle from '../../components/PageTitle';
 import TableSpinner from '../../components/TableSpinner';
 import NoRowsFound from '../../components/NoRowsFound';
@@ -24,7 +22,6 @@ function Booking() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const breadcrumbContext: any = useContext(BreadcrumbContext);
-    const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
     const currencyCode = adminContext.projects?.find(
         (p: any) => p.uuid === adminContext.projectUuid
@@ -58,17 +55,6 @@ function Booking() {
 
     const handleChangePage = (_event: unknown, newPage: number) => setPage(newPage);
 
-    const handleDelete = (id: string) => {
-        DeleteBooking(id).then((res) => {
-            if (res.status) {
-                toastContext.setToastSeverity('success');
-                toastContext.setToastMessage('Booking deleted.');
-                toastContext.setToast(true);
-                fetchRows();
-            }
-        });
-    };
-
     const fetchRows = () => {
         if (!loading) setLoading(true);
         if (!adminContext.projectUuid) {
@@ -101,11 +87,6 @@ function Booking() {
                         {hasPermission(PERMISSIONS.BOOKING.UPDATE) && (
                             <IconButton component={NavLink} to={ROUTES.BOOKING.EDIT(e.uuid)} color="warning" size="small">
                                 <ModeEditIcon fontSize="small" />
-                            </IconButton>
-                        )}
-                        {hasPermission(PERMISSIONS.BOOKING.DELETE) && (
-                            <IconButton color="error" size="small" onClick={() => handleDelete(e.uuid)}>
-                                <DeleteIcon fontSize="small" />
                             </IconButton>
                         )}
                     </Box>
