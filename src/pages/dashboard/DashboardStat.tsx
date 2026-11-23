@@ -3,7 +3,7 @@ import CardContent from '@mui/material/CardContent';
 import Card from '@mui/material/Card';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
-function DashboardStat({ title, value, icon, iconBg, loading }: any) {
+function DashboardStat({ title, value, icon, iconBg, loading, onClick }: any) {
     const theme = useTheme();
     const iconDimension = { width: { xs: 40, sm: 45 }, height: { xs: 40, sm: 45 }, borderRadius: '4px' };
     const iconStyle = {
@@ -24,7 +24,17 @@ function DashboardStat({ title, value, icon, iconBg, loading }: any) {
     };
 
     return (
-        <Card sx={cardStyle}>
+        <Card
+            sx={{
+                ...cardStyle,
+                ...(onClick ? {
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease, box-shadow 120ms ease',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 },
+                } : {}),
+            }}
+            onClick={onClick}
+        >
             <CardContent sx={{ p: { xs: 1.5, sm: 2 }, pb: { xs: '12px !important', sm: '12px !important' } }}>
                 <Box display="flex" justifyContent="flex-start" gap={{ xs: 1.5, sm: 2 }} alignItems="flex-start">
                     {loading ? (

@@ -9,7 +9,7 @@ import {
 import Grid from '@mui/material/Grid2';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useSearchParams } from 'react-router-dom';
 import { BreadcrumbContext } from '../../hooks/BreadcrumbContext';
 import { ToastContext } from '../../hooks/ToastContext';
 import { AdminContext } from '../../hooks/AdminContext';
@@ -27,6 +27,7 @@ import ListingCard from '../../components/ListingCard';
 function Plot() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [searchParams, setSearchParams] = useSearchParams();
     const breadcrumbContext: any = useContext(BreadcrumbContext);
     const toastContext: any = useContext(ToastContext);
     const adminContext: any = useContext(AdminContext);
@@ -41,7 +42,11 @@ function Plot() {
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [blockId, setBlockId] = useState('');
     const [categoryId, setCategoryId] = useState('');
-    const [status, setStatus] = useState('');
+    const statusParam = (searchParams.get('status') || '').toUpperCase();
+    const validStatusParam = Object.values(PLOT_STATUS).includes(statusParam as PLOT_STATUS)
+        ? statusParam
+        : '';
+    const [status, setStatus] = useState(validStatusParam);
     const [selected, setSelected] = useState<string[]>([]);
     const [deleteIds, setDeleteIds] = useState<string[]>([]);
     const [deleting, setDeleting] = useState(false);
@@ -67,7 +72,18 @@ function Plot() {
 
     const handleBlockChange = (value: string) => { setBlockId(value); setPage(0); };
     const handleCategoryChange = (value: string) => { setCategoryId(value); setPage(0); };
-    const handleStatusChange = (value: string) => { setStatus(value); setPage(0); };
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        setPage(0);
+        setSearchParams((params) => {
+            if (value) {
+                params.set('status', value.toLowerCase());
+            } else {
+                params.delete('status');
+            }
+            return params;
+        });
+    };
 
     const handleDelete = () => {
         setDeleting(true);
@@ -162,6 +178,11 @@ function Plot() {
         GetBlocks({ projectUuid: adminContext.projectUuid }).then(setBlocks);
         GetCategories({ projectUuid: adminContext.projectUuid }).then(setCategories);
     }, []);
+
+    useEffect(() => {
+        setStatus(validStatusParam);
+        setPage(0);
+    }, [searchParams]);
 
     useEffect(() => { fetchRows(); }, [page, blockId, categoryId, status, adminContext.projectUuid]);
 

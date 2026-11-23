@@ -77,6 +77,31 @@ export const GetBookings = async (
     };
 };
 
+export type OverdueBooking = BookingListItem & {
+    overdueInstallmentsCount: number;
+};
+
+export const GetOverdueBookings = async (
+    { page = 1, perPage = 10 },
+    projectUuid: string,
+    customerUuid?: string,
+) => {
+    const response: any = await GET(apiUrl.bookings + '/overdue', {
+        projectUuid,
+        page,
+        perPage,
+        ...(customerUuid ? { customerUuid } : {}),
+    });
+    if (response?.status && response.data) return response.data as {
+        list: OverdueBooking[];
+        pagination: { page: number; perPage: number; total: number; totalPages: number };
+    };
+    return {
+        list: [] as OverdueBooking[],
+        pagination: { page, perPage, total: 0, totalPages: 0 },
+    };
+};
+
 export const GetBooking = async (id: string, projectUuid?: string) => {
     const response: any = await GET(
         `${apiUrl.bookings}/${encodeURIComponent(id)}`,
